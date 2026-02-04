@@ -9,6 +9,8 @@ using Microsoft.OpenApi.Models;
 using Repository.Contracts;
 using Repository.Interfaces;
 using System.Text;
+using MediatR;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,9 +20,26 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // =======================
+// 🔹 CORS (REACT İÇİN ŞART)
+// =======================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5174") // VITE
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
+// =======================
 // 🔹 APPLICATION
 // =======================
 builder.Services.AddApplication();
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddApplicationServices();
 
 // =======================
@@ -70,6 +89,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
 builder.Services.AddAuthorization();
 
 // =======================
@@ -77,6 +97,7 @@ builder.Services.AddAuthorization();
 // =======================
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
 
 
 // =======================
@@ -111,6 +132,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
 var app = builder.Build();
 
 // =======================
@@ -123,6 +145,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// 🔥 CORS MUTLAKA Authentication'tan ÖNCE
+app.UseCors("AllowReact");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -137,28 +163,54 @@ app.Run();
 // =======================
 // 🔹 SEED METHOD
 // =======================
+
 static async Task SeedAdminUserAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
 
-    var userManager = scope.ServiceProvider
-        .GetRequiredService<UserManager<AppUser>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<long>>>();
 
-    if (await userManager.FindByNameAsync("admin") == null)
+    string[] roles = { "Admin", "User" };
+
+    foreach (var role in roles)
     {
-        var admin = new AppUser
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole<long>(role));
+        }
+    }
+
+    // 🔹 ADMIN
+    var admin = await userManager.FindByNameAsync("admin");
+    if (admin == null)
+    {
+        admin = new AppUser
         {
             UserName = "admin",
             Email = "admin@test.com",
             EmailConfirmed = true
         };
 
-        var result = await userManager.CreateAsync(admin, "Muaz_123");
+        await userManager.CreateAsync(admin, "Muaz_123");
+        await userManager.AddToRoleAsync(admin, "Admin");
+    }
 
-        if (!result.Succeeded)
+    // 🔹 NORMAL USER
+    var user = await userManager.FindByNameAsync("user1");
+    if (user == null)
+    {
+        user = new AppUser
         {
-            throw new Exception(string.Join(", ",
-                result.Errors.Select(e => e.Description)));
-        }
+            UserName = "user1",
+            Email = "user1@test.com",
+            EmailConfirmed = true
+        };
+
+        await userManager.CreateAsync(user, "User123");
+        await userManager.AddToRoleAsync(user, "User");
     }
 }
+
+
+

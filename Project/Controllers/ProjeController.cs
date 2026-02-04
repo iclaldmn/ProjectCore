@@ -2,20 +2,19 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace Api.Controllers;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[Authorize(Roles = "Admin")]
 public class ProjeController(IMediator mediator) : ControllerBase
 {
-    [Authorize]
-    // ✅ CREATE
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProjeCommand command)
     {
+       
         var id = await mediator.Send(command);
+
         return Ok(new
         {
             Id = id,
@@ -23,13 +22,11 @@ public class ProjeController(IMediator mediator) : ControllerBase
         });
     }
 
-    // ✅ UPDATE
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(
         long id,
         [FromBody] UpdateProjeCommand command)
     {
-        // URL'den gelen Id'yi command'a set et
         command.Id = id;
 
         var updatedId = await mediator.Send(command);

@@ -20,6 +20,7 @@ namespace Domain.Entities.ProjeModul
         public DateTime BaslangicTarihi { get; set; }
         public DateTime BitisTarihi { get; set; }
         public decimal ToplamBedel { get; set; }
+        public string CreatedByUserId { get; set; }
         public List<ProjeIlceDagilimi> IlceDagilimlari { get; set; }
 
     }
