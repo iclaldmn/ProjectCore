@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Application.Common;
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -20,8 +21,11 @@ public static class DependencyInjection
             cfg.RegisterServicesFromAssembly(assembly);
         });
 
-        // ✨ Validation Pipeline otomatik ekleniyor
+        // ✨ Validation Pipeline
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        // 🔥 AUTO MAPPER (EKSİK OLAN BUYDU)
+        services.AddAutoMapper(typeof(MappingProfile));
 
         return services;
     }

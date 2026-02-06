@@ -43,4 +43,6 @@ public interface IGenericRepository<T> where T : class
 
     // Raw SQL (EF Core 9)
     Task<IReadOnlyList<T>> GetWithRawSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters);
+
+    IQueryable<T> AsQueryable();
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Commands;
+using Application.Queries.GetProjeList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+//[Authorize(Roles = "Admin")]
 public class ProjeController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
@@ -36,5 +37,12 @@ public class ProjeController(IMediator mediator) : ControllerBase
             Id = updatedId,
             Message = "Proje başarıyla güncellendi"
         });
+    }
+
+    [HttpGet("list")]
+    public async Task<IActionResult> GetList()
+    {
+        var result = await mediator.Send(new GetProjeListQuery());
+        return Ok(result);
     }
 }

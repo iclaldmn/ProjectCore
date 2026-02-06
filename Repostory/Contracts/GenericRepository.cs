@@ -91,4 +91,9 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> 
 
     public async Task<IReadOnlyList<T>> GetWithRawSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters)
         => await _context.Set<T>().FromSqlRaw(sql, parameters).ToListAsync(cancellationToken);
+    public IQueryable<T> AsQueryable()
+    {
+        return _context.Set<T>().AsNoTracking();
+    }
+
 }

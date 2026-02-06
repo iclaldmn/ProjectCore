@@ -9,8 +9,6 @@ using Microsoft.OpenApi.Models;
 using Repository.Contracts;
 using Repository.Interfaces;
 using System.Text;
-using MediatR;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // =======================
-// 🔹 CORS (REACT İÇİN ŞART)
+// 🔹 CORS (REACT)
 // =======================
 builder.Services.AddCors(options =>
 {
@@ -28,7 +26,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:5174") // VITE
+                .WithOrigins("http://localhost:5174")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -37,10 +35,9 @@ builder.Services.AddCors(options =>
 // =======================
 // 🔹 APPLICATION
 // =======================
+// 🔥 AutoMapper + MediatR burada YÜKLENİYOR (Application katmanında)
 builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddApplicationServices();
 
 // =======================
 // 🔹 EF CORE
@@ -89,7 +86,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddAuthorization();
 
 // =======================
@@ -97,8 +93,6 @@ builder.Services.AddAuthorization();
 // =======================
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-
 
 // =======================
 // 🔹 SWAGGER + JWT
@@ -132,7 +126,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 var app = builder.Build();
 
 // =======================
@@ -146,7 +139,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 🔥 CORS MUTLAKA Authentication'tan ÖNCE
 app.UseCors("AllowReact");
 
 app.UseAuthentication();
@@ -154,7 +146,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ SEED
+// =======================
+// 🔹 SEED
+// =======================
 await SeedAdminUserAsync(app);
 
 app.Run();
@@ -163,7 +157,6 @@ app.Run();
 // =======================
 // 🔹 SEED METHOD
 // =======================
-
 static async Task SeedAdminUserAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
@@ -181,7 +174,6 @@ static async Task SeedAdminUserAsync(WebApplication app)
         }
     }
 
-    // 🔹 ADMIN
     var admin = await userManager.FindByNameAsync("admin");
     if (admin == null)
     {
@@ -196,7 +188,6 @@ static async Task SeedAdminUserAsync(WebApplication app)
         await userManager.AddToRoleAsync(admin, "Admin");
     }
 
-    // 🔹 NORMAL USER
     var user = await userManager.FindByNameAsync("user1");
     if (user == null)
     {
@@ -211,6 +202,3 @@ static async Task SeedAdminUserAsync(WebApplication app)
         await userManager.AddToRoleAsync(user, "User");
     }
 }
-
-
-
