@@ -15,8 +15,22 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> 
     public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         => await _context.Set<T>().FirstOrDefaultAsync(predicate, cancellationToken);
 
-    public async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default)
+    // 1️⃣ filtresiz
+    public async Task<IReadOnlyList<T>> GetAllAsync(
+        CancellationToken cancellationToken = default)
         => await _context.Set<T>().ToListAsync(cancellationToken);
+
+    // 2️⃣ filtreli
+    public async Task<IReadOnlyList<T>> GetAllAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context
+            .Set<T>()
+            .Where(predicate)
+            .ToListAsync(cancellationToken);
+    }
+
 
     public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         => await _context.Set<T>().Where(predicate).ToListAsync(cancellationToken);
@@ -39,17 +53,6 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> 
             query = query.Include(include);
 
         return await query.FirstOrDefaultAsync(predicate, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<T>> GetAllWithIncludeAsync(
-        CancellationToken cancellationToken = default,
-        params Expression<Func<T, object>>[] includes)
-    {
-        IQueryable<T> query = _context.Set<T>();
-        foreach (var include in includes)
-            query = query.Include(include);
-
-        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -91,9 +94,9 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> 
 
     public async Task<IReadOnlyList<T>> GetWithRawSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters)
         => await _context.Set<T>().FromSqlRaw(sql, parameters).ToListAsync(cancellationToken);
-    public IQueryable<T> AsQueryable()
+    public IQueryable<T> Query()
     {
-        return _context.Set<T>().AsNoTracking();
+        return _context.Set<T>();
     }
 
 }

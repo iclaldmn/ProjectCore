@@ -15,6 +15,7 @@ public class ProjeListDto: IMapFrom<Proje>
     public long Id { get; set; }
     public string ProjeAdi { get; set; }
     public decimal ToplamBedel { get; set; }
+    public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
 
     public void Mapping(Profile profile)
     {

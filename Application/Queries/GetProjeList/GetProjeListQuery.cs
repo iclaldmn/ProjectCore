@@ -10,5 +10,6 @@ namespace Application.Queries.GetProjeList
 {
     public class GetProjeListQuery : IRequest<List<ProjeListDto>>
     {
+
     }
 }

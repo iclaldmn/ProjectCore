@@ -8,6 +8,7 @@ public interface IGenericRepository<T> where T : class
     Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
 
     // Check & Count
@@ -17,10 +18,6 @@ public interface IGenericRepository<T> where T : class
     // Include (EF Core 9 improved includes)
     Task<T?> GetWithIncludeAsync(
         Expression<Func<T, bool>> predicate,
-        CancellationToken cancellationToken = default,
-        params Expression<Func<T, object>>[] includes);
-
-    Task<IReadOnlyList<T>> GetAllWithIncludeAsync(
         CancellationToken cancellationToken = default,
         params Expression<Func<T, object>>[] includes);
 
@@ -44,5 +41,6 @@ public interface IGenericRepository<T> where T : class
     // Raw SQL (EF Core 9)
     Task<IReadOnlyList<T>> GetWithRawSqlAsync(string sql, CancellationToken cancellationToken = default, params object[] parameters);
 
-    IQueryable<T> AsQueryable();
+    IQueryable<T> Query();
+
 }

@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 
 namespace Application.Queries.GetProjeList;
 
-    public class GetProjeListQueryHandler(
-    IUnitOfWork uow,
-    IMapper mapper
+public class GetProjeListQueryHandler(
+IUnitOfWork uow,
+IMapper mapper
 ) : IRequestHandler<GetProjeListQuery, List<ProjeListDto>>
 {
     public async Task<List<ProjeListDto>> Handle(
@@ -24,7 +24,9 @@ namespace Application.Queries.GetProjeList;
     {
         return await uow
             .Repository<Proje>()
-            .AsQueryable()
+            .Query()
+            .Include(p => p.IlceDagilimlari)
+            .ThenInclude(d => d.Ilce)
             .ProjectTo<ProjeListDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
     }

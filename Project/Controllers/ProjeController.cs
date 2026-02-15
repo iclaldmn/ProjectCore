@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/projeler")]
 //[Authorize(Roles = "Admin")]
 public class ProjeController(IMediator mediator) : ControllerBase
 {
