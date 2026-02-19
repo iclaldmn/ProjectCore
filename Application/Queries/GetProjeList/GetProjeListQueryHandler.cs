@@ -24,7 +24,7 @@ IMapper mapper
     {
         return await uow
             .Repository<Proje>()
-            .Query()
+            .Query().Where(p=>!request.IlceId.HasValue || p.IlceDagilimlari.Any(x=>x.IlceId==request.IlceId.Value))
             .Include(p => p.IlceDagilimlari)
             .ThenInclude(d => d.Ilce)
             .ProjectTo<ProjeListDto>(mapper.ConfigurationProvider)

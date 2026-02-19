@@ -61,9 +61,21 @@ public class CreateProjeCommandValidator
                 <= x.Bedeli + x.IlaveSozlesmeBedeli)
             .WithMessage("İlçe dağılım toplamı proje toplam bedelini aşamaz.");
 
+        RuleFor(x => x)
+            .Must(x => x.BitisTarihi >= x.BaslangicTarihi)
+            .WithMessage("Bitiş tarihi başlangıç tarihinden önce olamaz");
+
         // 🔹 İlçe dağılımı validator (SADECE CREATE)
         RuleForEach(x => x.IlceDagilimlari)
             .SetValidator(new CreateProjeIlceDagilimiCommandValidator());
+
+
+        RuleForEach(x => x.IlceDagilimlari)
+            .ChildRules(ilce =>
+            {
+                ilce.RuleFor(x => x.IlceyeOdenenBedeli)
+                    .GreaterThan(0);
+            });
     }
 }
 

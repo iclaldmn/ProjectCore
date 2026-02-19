@@ -14,10 +14,10 @@ namespace Application.DTOs.ProjeDto
         public long Id { get; set; }
         public string Adi { get; set; }
 
-        public void Mapping(Profile profile)
-        {
-            profile.CreateMap<Ilce, IlceDto>();
-        }
+        //public void Mapping(Profile profile)
+        //{
+        //    profile.CreateMap<Ilce, IlceDto>();
+        //}
     }
 
 }

@@ -6,10 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Queries.GetProjeList
-{
-    public class GetProjeListQuery : IRequest<List<ProjeListDto>>
-    {
-        public int? IlceId { get; set; }
-    }
-}
+namespace Application.Queries.GetProjeList;
+
+public record GetDegerByKategoriQuery(long KategoriId)
+    : IRequest<List<LookupDto>>;
+
+

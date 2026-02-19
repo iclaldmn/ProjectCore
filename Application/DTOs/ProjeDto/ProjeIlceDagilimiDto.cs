@@ -14,20 +14,20 @@ public class ProjeIlceDagilimiDto : IMapFrom<ProjeIlceDagilimi>
 {
     public decimal IlceyeOdenenBedeli { get; set; }
     public long IlceId { get; set; }
-    //public string Ilce { get; set; }
+    public string IlceAdi { get; set; }
     public long ProjeId { get; set; }
-
-    public void Mapping(Profile profile)
-    {
-        profile.CreateMap<ProjeIlceDagilimi, ProjeIlceDagilimiDto>();
-    }
 
     //public void Mapping(Profile profile)
     //{
-    //    profile.CreateMap<ProjeIlceDagilimi, ProjeIlceDagilimiDto>()
-    //        .ForMember(
-    //            dest => dest.Ilce,
-    //            opt => opt.MapFrom(src => src.Ilce.Adi)
-    //        );
+    //    profile.CreateMap<ProjeIlceDagilimi, ProjeIlceDagilimiDto>();
     //}
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<ProjeIlceDagilimi, ProjeIlceDagilimiDto>()
+            .ForMember(
+                dest => dest.IlceAdi,
+                opt => opt.MapFrom(src => src.Ilce.Adi)
+            );
+    }
 }

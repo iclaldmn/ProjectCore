@@ -1,28 +1,29 @@
-﻿using Domain.Common;
-using Domain.Entities.Ortak;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Domain.Entities.ProjeModul
+namespace Application.DTOs.ProjeDto
 {
-    public class Proje : HistoryEntity
+    public class ProjeCreateDto
     {
         public string Adi { get; set; }
         public string Aciklama { get; set; }
+
         public decimal Bedeli { get; set; }
         public decimal IlaveSozlesmeBedeli { get; set; }
+
         public long IhaleTuruId { get; set; }
-        public Deger IhaleTuru { get; set; }
         public long HedefKitleId { get; set; }
-        public Deger HedefKitle { get; set; }
         public long ProjeTipiId { get; set; }
-        public Deger ProjeTipi { get; set; }
         public long ProjeDurumuId { get; set; }
-        public Deger ProjeDurumu { get; set; }
+
         public DateTime BaslangicTarihi { get; set; }
         public DateTime BitisTarihi { get; set; }
-        public decimal ToplamBedel { get; set; }
-        public List<ProjeIlceDagilimi> IlceDagilimlari { get; set; } = new();
 
+        public List<ProjeIlceDagilimiCreateDto> IlceDagilimlari { get; set; }
     }
 
-}
 
+}

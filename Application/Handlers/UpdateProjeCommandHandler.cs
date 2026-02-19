@@ -18,32 +18,56 @@ public class UpdateProjeCommandHandler(
         UpdateProjeCommand request,
         CancellationToken cancellationToken)
     {
-        // 🎯 1) Entity + lookup navigation'ları yükle
+        // 1️⃣ Proje + İlçe dağılımları dahil yükle
         var entity = await uow.Repository<Proje>()
             .GetWithIncludeAsync(
                 x => x.Id == request.Id,
                 cancellationToken,
-                x => x.ProjeTipi,
-                x => x.ProjeDurumu,
-                x => x.IhaleTuru,
-                x => x.HedefKitle
+                x => x.IlceDagilimlari
             );
 
-        // ❌ Validation burada YOK
-        // UpdateProjeCommandValidator + Pipeline bunu zaten yapıyor
+        if (entity == null)
+            throw new Exception("Proje bulunamadı");
 
-        // 🎯 2) Scalar + FK alanları map et
-        mapper.Map(request, entity);
+        // 2️⃣ Scalar alanları map et
+        entity.Adi = request.Adi;
+        entity.Aciklama = request.Aciklama;
+        entity.Bedeli = request.Bedeli;
+        entity.IlaveSozlesmeBedeli = request.IlaveSozlesmeBedeli;
+        entity.IhaleTuruId = request.IhaleTuruId;
+        entity.HedefKitleId = request.HedefKitleId;
+        entity.ProjeTipiId = request.ProjeTipiId;
+        entity.ProjeDurumuId = request.ProjeDurumuId;
+        entity.BaslangicTarihi = request.BaslangicTarihi;
+        entity.BitisTarihi = request.BitisTarihi;
 
+        // 3️⃣ İlçe dağılımları null güvenliği
+        var ilceList = request.IlceDagilimlari
+            ?? new List<UpdateProjeIlceDagilimiCommand>();
+
+        // 4️⃣ Eski dağılımları sil
+        entity.IlceDagilimlari.Clear();
+
+        // 5️⃣ Yenilerini ekle
+        foreach (var item in ilceList)
+        {
+            entity.IlceDagilimlari.Add(new ProjeIlceDagilimi
+            {
+                IlceId = item.IlceId,
+                IlceyeOdenenBedeli = item.IlceyeOdenenBedeli
+            });
+        }
+
+        // 6️⃣ Toplam hesap
         entity.ToplamBedel = entity.Bedeli + entity.IlaveSozlesmeBedeli;
 
-        // 🎯 3) EF'ye entity güncellendiğini bildir
-        uow.Repository<Proje>().Update(entity);
+        var dagilimToplam = entity.IlceDagilimlari
+            .Sum(x => x.IlceyeOdenenBedeli);
 
-        // ℹ️ Navigation’lar lookup olduğu için
-        // sadece Id (FK) üzerinden güncellenir
+        if (dagilimToplam != entity.ToplamBedel)
+            throw new Exception("İlçe dağılım toplamı proje toplamına eşit olmalıdır");
 
-        // 🎯 4) Save
+        // 7️⃣ Save
         await uow.SaveAsync(cancellationToken);
 
         return entity.Id;

@@ -17,14 +17,14 @@ public class CreateProjeCommandHandler(
     {
         var entity = mapper.Map<Proje>(request);
 
-        entity.ToplamBedel = entity.Bedeli + entity.IlaveSozlesmeBedeli;
+        // 🔥 İlçe dağılımlarının toplamını hesapla
+        entity.ToplamBedel = entity.IlceDagilimlari?
+            .Sum(x => x.IlceyeOdenenBedeli) ?? 0;
 
-        // 🎯 EF'ye new entity bildir
-        uow.Repository<Proje>().AddAsync(entity);
-
-        // 🎯 Save (audit otomatik)
+        await uow.Repository<Proje>().AddAsync(entity);
         await uow.SaveAsync(cancellationToken);
 
         return entity.Id;
     }
 }
+
