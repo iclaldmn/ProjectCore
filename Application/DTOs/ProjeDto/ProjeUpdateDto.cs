@@ -21,12 +21,18 @@ public class ProjeUpdateDto : IMapFrom<Proje>
     public long ProjeTipiId { get; set; }
     public long IhaleTuruId { get; set; }
     public long HedefKitleId { get; set; }
+    public decimal ToplamBedel { get; set; }
 
     public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
 
     public void Mapping(Profile profile)
     {
-        profile.CreateMap<Proje, ProjeUpdateDto>()
-            .ReverseMap(); // 🔥 önemli
+        profile.CreateMap<Proje, ProjeUpdateDto>().ForMember(
+        dest => dest.IlceDagilimlari,
+        opt => opt.MapFrom(src =>
+            src.IlceDagilimlari
+               .Where(x => x.Silindi == false)
+        )
+    );
     }
 }

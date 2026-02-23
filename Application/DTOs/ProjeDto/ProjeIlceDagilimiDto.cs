@@ -12,6 +12,7 @@ namespace Application.DTOs.ProjeDto;
 
 public class ProjeIlceDagilimiDto : IMapFrom<ProjeIlceDagilimi>
 {
+    public long Id { get; set; }
     public decimal IlceyeOdenenBedeli { get; set; }
     public long IlceId { get; set; }
     public string IlceAdi { get; set; }

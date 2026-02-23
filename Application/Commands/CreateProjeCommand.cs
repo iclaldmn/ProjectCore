@@ -1,10 +1,11 @@
 ﻿using Application.Common;
+using Application.Helpers;
 using Domain.Entities.ProjeModul;
 using MediatR;
 
 namespace Application.Commands;
 
-public class CreateProjeCommand : IRequest<long>, IMapTo<Proje>
+public class CreateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
 {
     public string Adi { get; set; }
     public string? Aciklama { get; set; }

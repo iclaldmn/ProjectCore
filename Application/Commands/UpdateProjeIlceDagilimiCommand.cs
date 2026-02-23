@@ -6,7 +6,7 @@ namespace Application.Commands;
 
 public class UpdateProjeIlceDagilimiCommand : IRequest<long>, IMapTo<ProjeIlceDagilimi>
 {
-    public long Id { get; set; } // Güncellenecek dağılım Id
+    public long? Id { get; set; } 
 
     public decimal IlceyeOdenenBedeli { get; set; }
     public long IlceId { get; set; }

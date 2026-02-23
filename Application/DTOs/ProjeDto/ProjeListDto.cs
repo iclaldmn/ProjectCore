@@ -10,7 +10,7 @@ using AutoMapper;
 using Domain.Entities.ProjeModul;
 
 namespace Application.DTOs.ProjeDto;
-public class ProjeListDto: IMapFrom<Proje>
+public class ProjeListDto : IMapFrom<Proje>
 {
     public long Id { get; set; }
     public string Adi { get; set; }
@@ -41,6 +41,13 @@ public class ProjeListDto: IMapFrom<Proje>
             .ForMember(d => d.IhaleTuruAdi,
                 opt => opt.MapFrom(s => s.IhaleTuru.Adi))
             .ForMember(d => d.HedefKitleAdi,
-                opt => opt.MapFrom(s => s.HedefKitle.Adi));
+                opt => opt.MapFrom(s => s.HedefKitle.Adi))
+
+         .ForMember(d => d.IlceDagilimlari,
+                opt => opt.MapFrom(s =>
+                    s.IlceDagilimlari
+                        .Where(x => !x.Silindi)
+                )
+            );
     }
 }

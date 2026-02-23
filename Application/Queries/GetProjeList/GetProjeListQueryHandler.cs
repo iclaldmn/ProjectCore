@@ -14,21 +14,31 @@ using System.Threading.Tasks;
 namespace Application.Queries.GetProjeList;
 
 public class GetProjeListQueryHandler(
-IUnitOfWork uow,
-IMapper mapper
+    IUnitOfWork uow,
+    IMapper mapper
 ) : IRequestHandler<GetProjeListQuery, List<ProjeListDto>>
 {
     public async Task<List<ProjeListDto>> Handle(
-    GetProjeListQuery request,
-    CancellationToken cancellationToken)
+        GetProjeListQuery request,
+        CancellationToken cancellationToken)
     {
-        return await uow
+        var query = uow
             .Repository<Proje>()
-            .Query().Where(p=>!request.IlceId.HasValue || p.IlceDagilimlari.Any(x=>x.IlceId==request.IlceId.Value))
-            .Include(p => p.IlceDagilimlari)
-            .ThenInclude(d => d.Ilce)
+            .Query()
+            .Where(p => !p.Silindi);
+
+        if (request.IlceId.HasValue)
+        {
+            query = query.Where(p =>
+                p.IlceDagilimlari.Any(d =>
+                    !d.Silindi &&
+                    d.IlceId == request.IlceId.Value
+                )
+            );
+        }
+
+        return await query
             .ProjectTo<ProjeListDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
     }
-
 }

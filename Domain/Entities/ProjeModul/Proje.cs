@@ -6,7 +6,7 @@ namespace Domain.Entities.ProjeModul
     public class Proje : HistoryEntity
     {
         public string Adi { get; set; }
-        public string Aciklama { get; set; }
+        public string? Aciklama { get; set; }
         public decimal Bedeli { get; set; }
         public decimal IlaveSozlesmeBedeli { get; set; }
         public long IhaleTuruId { get; set; }

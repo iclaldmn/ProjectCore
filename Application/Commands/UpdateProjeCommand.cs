@@ -1,10 +1,11 @@
 ﻿using Application.Common;
+using Application.Helpers;
 using Domain.Entities.ProjeModul;
 using MediatR;
 
 namespace Application.Commands;
 
-public class UpdateProjeCommand : IRequest<long>, IMapTo<Proje>
+public class UpdateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
 {
     public long Id { get; set; } // Güncellenecek Proje Id
     public string Adi { get; set; }

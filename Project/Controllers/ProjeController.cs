@@ -1,4 +1,5 @@
 ﻿using Application.Commands;
+using Application.DTOs.ProjeDto;
 using Application.Queries.GetProjeList;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -14,36 +15,56 @@ public class ProjeController(IMediator mediator) : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateProjeCommand command)
     {
-       
-        var id = await mediator.Send(command);
+        var result = await mediator.Send(command);
 
-        return Ok(new
-        {
-            Id = id,
-            Message = "Proje başarıyla oluşturuldu"
-        });
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
     }
 
     [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(
-        long id,
-        [FromBody] UpdateProjeCommand command)
+    long id,
+    UpdateProjeCommand command)
     {
-        command.Id = id;
+        if (id != command.Id)
+            return BadRequest("Id eşleşmiyor");
 
-        var updatedId = await mediator.Send(command);
+        var result = await mediator.Send(command);
 
-        return Ok(new
-        {
-            Id = updatedId,
-            Message = "Proje başarıyla güncellendi"
-        });
+        if (!result.Success)
+            return BadRequest(result);
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id:long}")]
+    public async Task<ActionResult<ProjeUpdateDto>> GetById(long id)
+    {
+        var result = await mediator.Send(new GetProjeByIdQuery { Id = id });
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
     }
 
     [HttpGet("list")]
     public async Task<IActionResult> GetList()
     {
         var result = await mediator.Send(new GetProjeListQuery());
+        return Ok(result);
+    }
+
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var result = await mediator.Send(new DeleteProjeCommand { Id = id });
+
+        if (!result.Success)
+            return BadRequest(result);
+
         return Ok(result);
     }
 }

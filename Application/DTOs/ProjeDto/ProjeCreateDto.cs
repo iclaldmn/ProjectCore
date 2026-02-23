@@ -9,7 +9,7 @@ namespace Application.DTOs.ProjeDto
     public class ProjeCreateDto
     {
         public string Adi { get; set; }
-        public string Aciklama { get; set; }
+        public string? Aciklama { get; set; }
 
         public decimal Bedeli { get; set; }
         public decimal IlaveSozlesmeBedeli { get; set; }
