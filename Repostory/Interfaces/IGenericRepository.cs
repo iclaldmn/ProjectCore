@@ -5,7 +5,7 @@ namespace Repository.Interfaces;
 public interface IGenericRepository<T> where T : class
 {
     // Basic Query
-    Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
     Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<T>> GetAllAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);

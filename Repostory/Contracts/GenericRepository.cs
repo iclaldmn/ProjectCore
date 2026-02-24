@@ -9,7 +9,7 @@ public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> 
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<T?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
         => await _context.Set<T>().FindAsync([id], cancellationToken);
 
     public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
