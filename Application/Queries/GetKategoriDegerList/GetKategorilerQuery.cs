@@ -1,4 +1,4 @@
-﻿using Application.DTOs.KategoriDegerDto;
+﻿using Application.DTOs.KategorilerDegerlerDto;
 using MediatR;
 using System;
 using System.Collections.Generic;

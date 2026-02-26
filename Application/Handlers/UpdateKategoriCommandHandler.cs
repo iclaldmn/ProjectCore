@@ -2,6 +2,7 @@
 using Application.Helpers;
 using Domain.Entities.Ortak;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,28 @@ public class UpdateKategoriCommandHandler(
         if (entity == null || entity.Silindi)
             return Result<long>.Fail("Kategori bulunamadı");
 
+        // 🔥 Duplicate kontrol (kendi kaydı hariç)
+        var exists = await uow.Repository<Kategori>()
+            .Query()
+            .AnyAsync(x =>
+                x.Adi == request.Adi &&
+                x.Id != request.Id &&
+                !x.Silindi,
+                cancellationToken);
+
+        if (exists)
+            return Result<long>.Fail("Bu kategori adı zaten mevcut");
+
+        // 🔥 Business rule
+        if (request.ProjedeZorunlu && !request.ProjedeGoster)
+            return Result<long>.Fail(
+                "Zorunlu kategori projede gösterilmek zorundadır");
+
+        // 🔥 Alanları güncelle
         entity.Adi = request.Adi;
+        entity.Aktif = request.Aktif;
+        entity.ProjedeGoster = request.ProjedeGoster;
+        entity.ProjedeZorunlu = request.ProjedeZorunlu;
 
         await uow.SaveAsync(cancellationToken);
 

@@ -28,17 +28,12 @@ public class DeleteDegerCommandHandler(
         if (entity == null || entity.Silindi)
             return Result<long>.Fail("Değer bulunamadı");
 
-        // 🔥 1️⃣ Projelerde kullanılıyor mu kontrolü
-        var kullaniliyorMu = await uow.Repository<Proje>()
+        // 🔥 1️⃣ ProjeKategoriDeger tablosunda kullanılıyor mu?
+        var kullaniliyorMu = await uow.Repository<ProjeKategoriDeger>()
             .Query()
-            .AnyAsync(p =>
-                !p.Silindi &&
-                (
-                    p.ProjeTipiId == entity.Id ||
-                    p.ProjeDurumuId == entity.Id ||
-                    p.IhaleTuruId == entity.Id ||
-                    p.HedefKitleId == entity.Id
-                ),
+            .AnyAsync(x =>
+                !x.Silindi &&
+                x.DegerId == entity.Id,
                 cancellationToken);
 
         if (kullaniliyorMu)

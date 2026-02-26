@@ -14,15 +14,11 @@ namespace Application.DTOs.ProjeDto
         public decimal Bedeli { get; set; }
         public decimal IlaveSozlesmeBedeli { get; set; }
 
-        public long IhaleTuruId { get; set; }
-        public long HedefKitleId { get; set; }
-        public long ProjeTipiId { get; set; }
-        public long ProjeDurumuId { get; set; }
-
         public DateTime BaslangicTarihi { get; set; }
         public DateTime BitisTarihi { get; set; }
 
         public List<ProjeIlceDagilimiCreateDto> IlceDagilimlari { get; set; }
+        public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; } = new();
     }
 
 

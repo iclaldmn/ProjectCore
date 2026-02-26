@@ -1,4 +1,4 @@
-﻿using Application.DTOs.KategoriDegerDto;
+﻿using Application.DTOs.KategorilerDegerlerDto;
 using Application.DTOs.ProjeDto;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;

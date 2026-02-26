@@ -1,5 +1,6 @@
 ﻿using Domain.Common;
 using Domain.Entities.Kullanici;
+using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -17,8 +18,12 @@ public partial class AppDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+
+        // 🔥 Tüm FluentApi configleri otomatik yüklenir
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(AppDbContext).Assembly
+        );
     }
 
     public override async Task<int> SaveChangesAsync(

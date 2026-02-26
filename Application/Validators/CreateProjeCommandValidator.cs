@@ -1,12 +1,19 @@
 ﻿using Application.Commands;
+using Domain.Entities.Ortak;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Repository.Interfaces;
 
 namespace Application.Validators;
 public class CreateProjeCommandValidator
     : AbstractValidator<CreateProjeCommand>
 {
-    public CreateProjeCommandValidator()
+    private readonly IUnitOfWork _uow;
+
+    public CreateProjeCommandValidator(IUnitOfWork uow)
     {
+        _uow = uow;
+
         // 🔹 Proje adı
         RuleFor(x => x.Adi)
             .NotEmpty().WithMessage("Proje adı boş olamaz.")
@@ -14,68 +21,82 @@ public class CreateProjeCommandValidator
 
         // 🔹 Açıklama
         RuleFor(x => x.Aciklama)
-            .MaximumLength(500).WithMessage("Açıklama 500 karakterden uzun olamaz.")
+            .MaximumLength(500)
+            .WithMessage("Açıklama 500 karakterden uzun olamaz.")
             .When(x => !string.IsNullOrWhiteSpace(x.Aciklama));
 
         // 🔹 Bedeller
         RuleFor(x => x.Bedeli)
-            .GreaterThan(0).WithMessage("Proje bedeli 0'dan büyük olmalıdır.");
+            .GreaterThan(0)
+            .WithMessage("Proje bedeli 0'dan büyük olmalıdır.");
 
         RuleFor(x => x.IlaveSozlesmeBedeli)
             .GreaterThanOrEqualTo(0)
             .WithMessage("İlave sözleşme bedeli negatif olamaz.");
 
-        // 🔹 Lookup Id'ler
-        RuleFor(x => x.IhaleTuruId)
-            .GreaterThan(0).WithMessage("İhale türü seçilmelidir.");
-
-        RuleFor(x => x.HedefKitleId)
-            .GreaterThan(0).WithMessage("Hedef kitle seçilmelidir.");
-
-        RuleFor(x => x.ProjeTipiId)
-            .GreaterThan(0).WithMessage("Proje tipi seçilmelidir.");
-
-        RuleFor(x => x.ProjeDurumuId)
-            .GreaterThan(0).WithMessage("Proje durumu seçilmelidir.");
-
         // 🔹 Tarihler
         RuleFor(x => x.BaslangicTarihi)
-            .LessThan(x => x.BitisTarihi)
-            .WithMessage("Başlangıç tarihi bitiş tarihinden önce olmalıdır.");
+            .LessThanOrEqualTo(x => x.BitisTarihi)
+            .WithMessage("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
 
-        // 🔹 İlçe dağılımları (zorunlu)
+        RuleFor(x => x.BitisTarihi)
+            .GreaterThanOrEqualTo(x => x.BaslangicTarihi)
+            .WithMessage("Bitiş tarihi başlangıç tarihinden önce olamaz.");
+
+        // 🔹 İlçe dağılımları zorunlu
         RuleFor(x => x.IlceDagilimlari)
             .NotNull().WithMessage("İlçe dağılımı listesi boş olamaz.")
             .NotEmpty().WithMessage("En az bir ilçe dağılımı belirtilmelidir.");
 
-        // Aynı ilçe birden fazla olamaz
+        // 🔹 Aynı ilçe tekrar edemez
         RuleFor(x => x.IlceDagilimlari)
             .Must(list =>
                 list.GroupBy(i => i.IlceId).All(g => g.Count() == 1))
             .WithMessage("Aynı ilçe birden fazla kez eklenemez.");
 
-        // Toplam bedel kontrolü
+        // 🔹 Toplam eşitlik kontrolü (ÖNEMLİ)
         RuleFor(x => x)
             .Must(x =>
                 x.IlceDagilimlari.Sum(i => i.IlceyeOdenenBedeli)
-                <= x.Bedeli + x.IlaveSozlesmeBedeli)
-            .WithMessage("İlçe dağılım toplamı proje toplam bedelini aşamaz.");
+                == x.Bedeli + x.IlaveSozlesmeBedeli)
+            .WithMessage("İlçe dağılım toplamı proje toplam bedeline eşit olmalıdır.");
 
-        RuleFor(x => x)
-            .Must(x => x.BitisTarihi >= x.BaslangicTarihi)
-            .WithMessage("Bitiş tarihi başlangıç tarihinden önce olamaz");
-
-        // 🔹 İlçe dağılımı validator (SADECE CREATE)
+        // 🔹 İlçe dağılımı alt validator
         RuleForEach(x => x.IlceDagilimlari)
             .SetValidator(new CreateProjeIlceDagilimiCommandValidator());
 
+        // 🔥 DİNAMİK KATEGORİ ZORUNLULUK KONTROLÜ
+        RuleFor(x => x)
+            .MustAsync(ZorunluKategoriKontrol)
+            .WithMessage("Zorunlu kategori alanları doldurulmalıdır.");
+    }
 
-        RuleForEach(x => x.IlceDagilimlari)
-            .ChildRules(ilce =>
-            {
-                ilce.RuleFor(x => x.IlceyeOdenenBedeli)
-                    .GreaterThan(0);
-            });
+    private async Task<bool> ZorunluKategoriKontrol(
+        CreateProjeCommand command,
+        CancellationToken cancellationToken)
+    {
+        // Aktif + projede göster + zorunlu kategoriler
+        var zorunluKategoriler = await _uow.Repository<Kategori>()
+            .Query()
+            .Where(x => !x.Silindi
+                        && x.Aktif
+                        && x.ProjedeGoster
+                        && x.ProjedeZorunlu)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        if (!zorunluKategoriler.Any())
+            return true;
+
+        if (command.KategoriDegerleri == null)
+            return false;
+
+        var secilenKategoriIdler = command.KategoriDegerleri
+            .Select(x => x.KategoriId)
+            .ToList();
+
+        return zorunluKategoriler
+            .All(z => secilenKategoriIdler.Contains(z));
     }
 }
 

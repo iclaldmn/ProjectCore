@@ -1,6 +1,7 @@
 ﻿using Application.Commands;
 using Application.Helpers;
 using AutoMapper;
+using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using MediatR;
 using Repository.Interfaces;
@@ -16,28 +17,55 @@ public class CreateProjeCommandHandler(
         CreateProjeCommand request,
         CancellationToken cancellationToken)
     {
+        // 🔹 İlçe kontrolü
         if (request.IlceDagilimlari == null || !request.IlceDagilimlari.Any())
             return Result<long>.Fail("En az bir ilçe eklenmelidir");
 
-        var duplicateCheck = request.IlceDagilimlari
+        var duplicateIlce = request.IlceDagilimlari
             .GroupBy(x => x.IlceId)
             .Any(g => g.Count() > 1);
 
-        if (duplicateCheck)
+        if (duplicateIlce)
             return Result<long>.Fail("Aynı ilçe birden fazla eklenemez");
+
+        // 🔥 Dinamik kategori kontrolü
+        if (request.KategoriDegerleri != null && request.KategoriDegerleri.Any())
+        {
+            var duplicateKategori = request.KategoriDegerleri
+                .GroupBy(x => x.KategoriId)
+                .Any(g => g.Count() > 1);
+
+            if (duplicateKategori)
+                return Result<long>.Fail("Aynı kategori birden fazla seçilemez");
+        }
 
         var entity = mapper.Map<Proje>(request);
 
-        // 🔥 Toplam hesap (Bedeli + İlave)
+        // 🔥 Toplam hesap
         entity.ToplamBedel = entity.Bedeli + entity.IlaveSozlesmeBedeli;
 
-        var dagilimToplam = entity.IlceDagilimlari
-            .Where(x => !x.Silindi)
+        var dagilimToplam = request.IlceDagilimlari
             .Sum(x => x.IlceyeOdenenBedeli);
 
         if (dagilimToplam != entity.ToplamBedel)
             return Result<long>.Fail(
                 "İlçe dağılım toplamı proje toplamına eşit olmalıdır");
+
+        // 🔥 İlçe ekleme
+        entity.IlceDagilimlari = request.IlceDagilimlari
+            .Select(x => new ProjeIlceDagilimi
+            {
+                IlceId = x.IlceId,
+                IlceyeOdenenBedeli = x.IlceyeOdenenBedeli
+            }).ToList();
+
+        // 🔥 Dinamik kategori ekleme
+        entity.KategoriDegerleri = request.KategoriDegerleri?
+            .Select(x => new ProjeKategoriDeger
+            {
+                KategoriId = x.KategoriId,
+                DegerId = x.DegerId
+            }).ToList() ?? new List<ProjeKategoriDeger>();
 
         await uow.Repository<Proje>().AddAsync(entity);
         await uow.SaveAsync(cancellationToken);
@@ -45,4 +73,3 @@ public class CreateProjeCommandHandler(
         return Result<long>.Ok(entity.Id, "Proje başarıyla oluşturuldu");
     }
 }
-

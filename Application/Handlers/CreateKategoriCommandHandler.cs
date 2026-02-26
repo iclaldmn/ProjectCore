@@ -22,14 +22,24 @@ public class CreateKategoriCommandHandler(
     {
         var exists = await uow.Repository<Kategori>()
             .Query()
-            .AnyAsync(x => x.Adi == request.Adi && !x.Silindi, cancellationToken);
+            .AnyAsync(
+                x => x.Adi == request.Adi && !x.Silindi,
+                cancellationToken);
 
         if (exists)
             return Result<long>.Fail("Bu kategori zaten mevcut");
 
+        // 🔥 Business Rule
+        if (request.ProjedeZorunlu && !request.ProjedeGoster)
+            return Result<long>.Fail(
+                "Zorunlu kategori projede gösterilmek zorundadır");
+
         var entity = new Kategori
         {
-            Adi = request.Adi
+            Adi = request.Adi,
+            Aktif = request.Aktif,
+            ProjedeGoster = request.ProjedeGoster,
+            ProjedeZorunlu = request.ProjedeZorunlu
         };
 
         await uow.Repository<Kategori>().AddAsync(entity);

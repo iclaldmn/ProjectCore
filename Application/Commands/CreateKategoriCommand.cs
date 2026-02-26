@@ -11,4 +11,7 @@ namespace Application.Commands;
 public class CreateKategoriCommand : IRequest<Result<long>>
 {
     public string Adi { get; set; }
+    public bool Aktif { get; set; }
+    public bool ProjedeGoster { get; set; }
+    public bool ProjedeZorunlu { get; set; }
 }

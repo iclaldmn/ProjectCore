@@ -6,38 +6,40 @@ using System.Reflection;
 
 namespace Application.Common;
 
+using AutoMapper;
+using System.Reflection;
+
 public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // 🔹 DTO'ların olduğu assembly'yi veriyoruz
+        // 🔹 DTO assembly scan
         ApplyMappingsFromAssembly(typeof(ProjeListDto).Assembly);
 
-        // 🔹 Komutlar -> Entity mapping
+        // 🔹 CREATE -> ENTITY
         CreateMap<CreateProjeCommand, Proje>()
-           .ForMember(dest => dest.Id, opt => opt.Ignore())
-           .ForMember(dest => dest.OlusturanKullanici, opt => opt.Ignore())
-           .ForMember(dest => dest.OlusturmaZamani, opt => opt.Ignore())
-           .ForMember(dest => dest.GuncelleyenKullanici, opt => opt.Ignore())
-           .ForMember(dest => dest.GuncellemeZamani, opt => opt.Ignore())
-           .ForMember(dest => dest.Silindi, opt => opt.Ignore())
-           .ForMember(dest => dest.IhaleTuru, opt => opt.Ignore())
-           .ForMember(dest => dest.HedefKitle, opt => opt.Ignore())
-           .ForMember(dest => dest.ProjeTipi, opt => opt.Ignore())
-           .ForMember(dest => dest.ProjeDurumu, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.OlusturanKullanici, opt => opt.Ignore())
+            .ForMember(dest => dest.OlusturmaZamani, opt => opt.Ignore())
+            .ForMember(dest => dest.GuncelleyenKullanici, opt => opt.Ignore())
+            .ForMember(dest => dest.GuncellemeZamani, opt => opt.Ignore())
+            .ForMember(dest => dest.Silindi, opt => opt.Ignore())
+            .ForMember(dest => dest.ToplamBedel, opt => opt.Ignore())
+            .ForMember(dest => dest.IlceDagilimlari, opt => opt.Ignore())
+            .ForMember(dest => dest.KategoriDegerleri, opt => opt.Ignore());
 
+        // 🔹 UPDATE -> ENTITY
         CreateMap<UpdateProjeCommand, Proje>()
             .ForMember(dest => dest.OlusturanKullanici, opt => opt.Ignore())
             .ForMember(dest => dest.OlusturmaZamani, opt => opt.Ignore())
             .ForMember(dest => dest.GuncelleyenKullanici, opt => opt.Ignore())
             .ForMember(dest => dest.GuncellemeZamani, opt => opt.Ignore())
             .ForMember(dest => dest.Silindi, opt => opt.Ignore())
-            .ForMember(dest => dest.IhaleTuru, opt => opt.Ignore())
-            .ForMember(dest => dest.HedefKitle, opt => opt.Ignore())
-            .ForMember(dest => dest.ProjeTipi, opt => opt.Ignore())
-            .ForMember(dest => dest.ProjeDurumu, opt => opt.Ignore())
-            .ForMember(dest => dest.IlceDagilimlari, opt => opt.Ignore());
+            .ForMember(dest => dest.ToplamBedel, opt => opt.Ignore())
+            .ForMember(dest => dest.IlceDagilimlari, opt => opt.Ignore())
+            .ForMember(dest => dest.KategoriDegerleri, opt => opt.Ignore());
 
+        // 🔹 İlçe mapping
         CreateMap<UpdateProjeIlceDagilimiCommand, ProjeIlceDagilimi>();
     }
 
@@ -60,12 +62,10 @@ public class MappingProfile : Profile
 
                 if (method != null)
                 {
-                    // ✅ DTO kendi mapping'ini tanımlamışsa çalıştır
                     method.Invoke(instance, new object[] { this });
                 }
                 else
                 {
-                    // 🔹 fallback mapping
                     var mapFrom = type.GetInterfaces()
                         .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IMapFrom<>))
                         .Select(i => i.GetGenericArguments().First());
@@ -87,7 +87,6 @@ public class MappingProfile : Profile
             }
             catch (Exception ex)
             {
-                // Mapping yüklenemezse detaylı log
                 Console.WriteLine($"⚠️ Mapping yüklenemedi: {type.Name} - {ex.Message}");
             }
         }

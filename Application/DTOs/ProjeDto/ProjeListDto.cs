@@ -14,40 +14,21 @@ public class ProjeListDto : IMapFrom<Proje>
 {
     public long Id { get; set; }
     public string Adi { get; set; }
-    public string Aciklama { get; set; }
+    public string? Aciklama { get; set; }
     public decimal ToplamBedel { get; set; }
-
-    public long ProjeDurumuId { get; set; }
-    public string ProjeDurumuAdi { get; set; }
-
-    public long ProjeTipiId { get; set; }
-    public string ProjeTipiAdi { get; set; }
-
-    public long IhaleTuruId { get; set; }
-    public string IhaleTuruAdi { get; set; }
-
-    public long HedefKitleId { get; set; }
-    public string HedefKitleAdi { get; set; }
 
     public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
 
+    // 🔥 Dinamik kategori değerleri
+    public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; }
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Proje, ProjeListDto>()
-            .ForMember(d => d.ProjeDurumuAdi,
-                opt => opt.MapFrom(s => s.ProjeDurumu.Adi))
-            .ForMember(d => d.ProjeTipiAdi,
-                opt => opt.MapFrom(s => s.ProjeTipi.Adi))
-            .ForMember(d => d.IhaleTuruAdi,
-                opt => opt.MapFrom(s => s.IhaleTuru.Adi))
-            .ForMember(d => d.HedefKitleAdi,
-                opt => opt.MapFrom(s => s.HedefKitle.Adi))
-
-         .ForMember(d => d.IlceDagilimlari,
+            .ForMember(d => d.IlceDagilimlari,
                 opt => opt.MapFrom(s =>
-                    s.IlceDagilimlari
-                        .Where(x => !x.Silindi)
-                )
-            );
+                    s.IlceDagilimlari.Where(x => !x.Silindi)))
+            .ForMember(d => d.KategoriDegerleri,
+                opt => opt.MapFrom(s =>
+                    s.KategoriDegerleri.Where(x => !x.Silindi)));
     }
 }

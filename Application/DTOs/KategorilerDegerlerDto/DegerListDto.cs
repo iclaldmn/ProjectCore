@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.DTOs.KategoriDegerDto;
+namespace Application.DTOs.KategorilerDegerlerDto;
 
 public class DegerListDto : IMapFrom<Deger>
 {

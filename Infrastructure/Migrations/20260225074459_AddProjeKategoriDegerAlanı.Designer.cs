@@ -4,6 +4,7 @@ using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225074459_AddProjeKategoriDegerAlanı")]
+    partial class AddProjeKategoriDegerAlanı
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,10 +124,90 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("KategoriId");
 
-                    b.HasIndex("KategoriId", "Adi")
-                        .IsUnique();
-
                     b.ToTable("Deger", "Ortak");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Adi = "Yol",
+                            KategoriId = 1L,
+                            Kodu = "YOL",
+                            Silindi = false,
+                            SiraNo = 1
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            Adi = "Asfalt",
+                            KategoriId = 1L,
+                            Kodu = "ASF",
+                            Silindi = false,
+                            SiraNo = 2
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            Adi = "Bina",
+                            KategoriId = 1L,
+                            Kodu = "BNA",
+                            Silindi = false,
+                            SiraNo = 3
+                        },
+                        new
+                        {
+                            Id = 4L,
+                            Adi = "Tamamlandı",
+                            KategoriId = 2L,
+                            Kodu = "TMMD",
+                            Silindi = false,
+                            SiraNo = 1
+                        },
+                        new
+                        {
+                            Id = 5L,
+                            Adi = "Devam Ediyor",
+                            KategoriId = 2L,
+                            Kodu = "DEV",
+                            Silindi = false,
+                            SiraNo = 2
+                        },
+                        new
+                        {
+                            Id = 6L,
+                            Adi = "Açık İhale",
+                            KategoriId = 3L,
+                            Kodu = "ACK",
+                            Silindi = false,
+                            SiraNo = 1
+                        },
+                        new
+                        {
+                            Id = 7L,
+                            Adi = "DMO",
+                            KategoriId = 3L,
+                            Kodu = "DMO",
+                            Silindi = false,
+                            SiraNo = 2
+                        },
+                        new
+                        {
+                            Id = 8L,
+                            Adi = "Vatandaş",
+                            KategoriId = 4L,
+                            Kodu = "VTN",
+                            Silindi = false,
+                            SiraNo = 1
+                        },
+                        new
+                        {
+                            Id = 9L,
+                            Adi = "Personel",
+                            KategoriId = 4L,
+                            Kodu = "PRS",
+                            Silindi = false,
+                            SiraNo = 2
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Ortak.Ilce", b =>
@@ -396,7 +479,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ProjeId");
 
-                    b.ToTable("ProjeKategoriDeger", "Proje");
+                    b.ToTable("ProjeKategoriDeger");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProjeModul.Proje", b =>
@@ -425,6 +508,18 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("BitisTarihi")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("DegerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DegerId1")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DegerId2")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DegerId3")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("GuncellemeZamani")
                         .HasColumnType("datetime2");
 
@@ -447,6 +542,14 @@ namespace Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DegerId");
+
+                    b.HasIndex("DegerId1");
+
+                    b.HasIndex("DegerId2");
+
+                    b.HasIndex("DegerId3");
 
                     b.ToTable("Proje", "Proje");
                 });
@@ -629,7 +732,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Ortak.Deger", "Deger")
                         .WithMany()
                         .HasForeignKey("DegerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Ortak.Kategori", "Kategori")
@@ -649,6 +752,25 @@ namespace Infrastructure.Migrations
                     b.Navigation("Kategori");
 
                     b.Navigation("Proje");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProjeModul.Proje", b =>
+                {
+                    b.HasOne("Domain.Entities.Ortak.Deger", null)
+                        .WithMany("ProjelerAsHedefKitle")
+                        .HasForeignKey("DegerId");
+
+                    b.HasOne("Domain.Entities.Ortak.Deger", null)
+                        .WithMany("ProjelerAsIhaleTuru")
+                        .HasForeignKey("DegerId1");
+
+                    b.HasOne("Domain.Entities.Ortak.Deger", null)
+                        .WithMany("ProjelerAsProjeDurumu")
+                        .HasForeignKey("DegerId2");
+
+                    b.HasOne("Domain.Entities.Ortak.Deger", null)
+                        .WithMany("ProjelerAsProjeTipi")
+                        .HasForeignKey("DegerId3");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProjeModul.ProjeIlceDagilimi", b =>
@@ -719,6 +841,17 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Ortak.Deger", b =>
+                {
+                    b.Navigation("ProjelerAsHedefKitle");
+
+                    b.Navigation("ProjelerAsIhaleTuru");
+
+                    b.Navigation("ProjelerAsProjeDurumu");
+
+                    b.Navigation("ProjelerAsProjeTipi");
                 });
 
             modelBuilder.Entity("Domain.Entities.Ortak.Ilce", b =>

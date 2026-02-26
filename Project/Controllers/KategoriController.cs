@@ -1,5 +1,6 @@
 ﻿using Application.Commands;
 using Application.Queries.GetKategoriDegerList;
+using Application.Queries.GetProjeList;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,6 +39,17 @@ public class KategoriController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(new DeleteKategoriCommand { Id = id });
         if (!result.Success) return BadRequest(result);
+        return Ok(result);
+    }
+
+    [HttpGet("proje")]
+    public async Task<IActionResult> GetProjeKategorileri()
+    {
+        var result = await mediator.Send(new GetProjeKategorileriQuery());
+
+        if (!result.Success)
+            return BadRequest(result);
+
         return Ok(result);
     }
 }

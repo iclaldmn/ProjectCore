@@ -16,14 +16,10 @@ public class ProjeUpdateDto : IMapFrom<Proje>
 
     public DateTime BaslangicTarihi { get; set; }
     public DateTime BitisTarihi { get; set; }
-
-    public long ProjeDurumuId { get; set; }
-    public long ProjeTipiId { get; set; }
-    public long IhaleTuruId { get; set; }
-    public long HedefKitleId { get; set; }
     public decimal ToplamBedel { get; set; }
 
     public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
+    public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; } = new();
 
     public void Mapping(Profile profile)
     {

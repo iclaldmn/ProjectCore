@@ -1,4 +1,6 @@
 ﻿using Application.DTOs.KategorilerDegerlerDto;
+using Application.DTOs.ProjeDto;
+using Application.Helpers;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Domain.Entities.Ortak;
@@ -11,21 +13,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Queries.GetKategoriDegerList;
+namespace Application.Queries.GetProjeList;
 
-public class GetKategorilerQueryHandler(
+public class GetProjeKategorileriQueryHandler(
     IUnitOfWork uow,
     IMapper mapper
-) : IRequestHandler<GetKategorilerQuery, List<KategoriListDto>>
+) : IRequestHandler<GetProjeKategorileriQuery, Result<List<KategoriListDto>>>
 {
-    public async Task<List<KategoriListDto>> Handle(
-        GetKategorilerQuery request,
+    public async Task<Result<List<KategoriListDto>>> Handle(
+        GetProjeKategorileriQuery request,
         CancellationToken cancellationToken)
     {
-        return await uow.Repository<Kategori>()
+        var data = await uow.Repository<Kategori>()
             .Query()
-            .Where(x => !x.Silindi)
+            .Where(x => !x.Silindi && x.Aktif && x.ProjedeGoster)
             .ProjectTo<KategoriListDto>(mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+
+        return Result<List<KategoriListDto>>.Ok(data);
     }
 }

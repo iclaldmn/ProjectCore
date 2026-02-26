@@ -67,4 +67,6 @@ public class ProjeController(IMediator mediator) : ControllerBase
 
         return Ok(result);
     }
+
+    
 }
