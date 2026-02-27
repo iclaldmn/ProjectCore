@@ -17,12 +17,13 @@ public class DeleteProjeCommandHandler(
 ) : IRequestHandler<DeleteProjeCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(
-        DeleteProjeCommand request,
-        CancellationToken cancellationToken)
+     DeleteProjeCommand request,
+     CancellationToken cancellationToken)
     {
         var entity = await uow.Repository<Proje>()
             .Query()
             .Include(x => x.IlceDagilimlari)
+            .Include(x => x.KategoriDegerleri)   // 🔥 önemli
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (entity == null)
@@ -34,8 +35,14 @@ public class DeleteProjeCommandHandler(
         // 🔥 Parent soft delete
         entity.Silindi = true;
 
-        // 🔥 Child soft delete
+        // 🔥 İlçe dağılımları soft delete
         foreach (var item in entity.IlceDagilimlari)
+        {
+            item.Silindi = true;
+        }
+
+        // 🔥 KategoriDeger soft delete
+        foreach (var item in entity.KategoriDegerleri)
         {
             item.Silindi = true;
         }

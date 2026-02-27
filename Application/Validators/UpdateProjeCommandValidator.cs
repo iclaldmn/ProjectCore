@@ -1,6 +1,8 @@
 ﻿using Application.Commands;
+using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 
 namespace Application.Validators;
@@ -42,26 +44,39 @@ public class UpdateProjeCommandValidator
             .When(x => x.IlaveSozlesmeBedeli != default)
             .WithMessage("İlave sözleşme bedeli negatif olamaz.");
 
-        // 🔹 Lookup Id'ler (opsiyonel)
-        RuleFor(x => x.IhaleTuruId)
-            .GreaterThan(0)
-            .When(x => x.IhaleTuruId != default)
-            .WithMessage("İhale türü seçilmelidir.");
+        // 🔹 Kategori değerleri kontrolü
+        RuleFor(x => x.KategoriDegerleri)
+            .Must(list => list == null || list.All(k => k.KategoriId > 0 && k.DegerId > 0))
+            .WithMessage("Kategori ve değer seçimi geçersiz.");
 
-        RuleFor(x => x.HedefKitleId)
-            .GreaterThan(0)
-            .When(x => x.HedefKitleId != default)
-            .WithMessage("Hedef kitle seçilmelidir.");
+        // Aynı kategori birden fazla seçilemez
+        RuleFor(x => x.KategoriDegerleri)
+            .Must(list => list == null ||
+                list.GroupBy(k => k.KategoriId).All(g => g.Count() == 1))
+            .WithMessage("Aynı kategori birden fazla seçilemez.");
 
-        RuleFor(x => x.ProjeTipiId)
-            .GreaterThan(0)
-            .When(x => x.ProjeTipiId != default)
-            .WithMessage("Proje tipi seçilmelidir.");
+        RuleFor(x => x)
+        .MustAsync(async (command, cancellation) =>
+        {
+            var zorunluKategoriler = await _uow.Repository<Kategori>()
+                .Query()
+                .Where(k => k.ProjedeZorunlu)
+                .Select(k => k.Id)
+                .ToListAsync(cancellation);
 
-        RuleFor(x => x.ProjeDurumuId)
-            .GreaterThan(0)
-            .When(x => x.ProjeDurumuId != default)
-            .WithMessage("Proje durumu seçilmelidir.");
+            if (zorunluKategoriler.Count == 0)
+                return true;
+
+            if (command.KategoriDegerleri == null)
+                return false;
+
+            var secilenKategoriIds = command.KategoriDegerleri
+                .Select(k => k.KategoriId)
+                .ToList();
+
+            return zorunluKategoriler.All(z => secilenKategoriIds.Contains(z));
+        })
+        .WithMessage("Zorunlu kategoriler için değer seçilmelidir.");
 
         // 🔹 Tarihler (ikisi de gönderildiyse kontrol)
         RuleFor(x => x)
@@ -98,7 +113,27 @@ public class UpdateProjeCommandValidator
         // 🔹 İlçe validator (create / update ayrımı)
         RuleForEach(x => x.IlceDagilimlari)
              .SetValidator(new UpdateProjeIlceDagilimiCommandValidator())
-             .When(x => x.IlceDagilimlari.Any(i => i.Id > 0));
+             .When(x => x.IlceDagilimlari != null && x.IlceDagilimlari.Any(i => i.Id > 0));
+
+        RuleForEach(x => x.KategoriDegerleri)
+            .MustAsync(async (item, cancellation) =>
+            {
+                return await _uow.Repository<Deger>()
+                    .AnyAsync(d =>
+                        d.Id == item.DegerId &&
+                        d.KategoriId == item.KategoriId &&
+                        !d.Silindi,
+                        cancellation);
+            })
+            .WithMessage("Seçilen değer ilgili kategoriye ait değil.");
+
+        RuleFor(x => x)
+            .Must(x =>
+                x.IlceDagilimlari == null ||
+                x.IlceDagilimlari.Sum(i => i.IlceyeOdenenBedeli)
+                == (x.Bedeli + x.IlaveSozlesmeBedeli)
+            )
+            .WithMessage("İlçe dağılım toplamı proje toplam bedeline eşit olmalıdır.");
 
     }
 

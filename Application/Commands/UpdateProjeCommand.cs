@@ -12,12 +12,9 @@ public class UpdateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
     public string? Aciklama { get; set; }
     public decimal Bedeli { get; set; }
     public decimal IlaveSozlesmeBedeli { get; set; }
-    public long IhaleTuruId { get; set; }
-    public long HedefKitleId { get; set; }
-    public long ProjeTipiId { get; set; }
-    public long ProjeDurumuId { get; set; }
     public DateTime BaslangicTarihi { get; set; }
     public DateTime BitisTarihi { get; set; }
 
     public List<UpdateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; }
+    public List<ProjeKategoriDegerCommand>? KategoriDegerleri { get; set; }
 }

@@ -69,6 +69,29 @@ public class CreateProjeCommandValidator
         RuleFor(x => x)
             .MustAsync(ZorunluKategoriKontrol)
             .WithMessage("Zorunlu kategori alanları doldurulmalıdır.");
+
+        // 🔹 Aynı kategori birden fazla seçilemez
+        RuleFor(x => x.KategoriDegerleri)
+            .Must(list => list == null ||
+                list.GroupBy(k => k.KategoriId).All(g => g.Count() == 1))
+            .WithMessage("Aynı kategori birden fazla seçilemez.");
+
+        RuleFor(x => x.KategoriDegerleri)
+            .Must(list => list == null ||
+                list.All(k => k.KategoriId > 0 && k.DegerId > 0))
+            .WithMessage("Kategori ve değer seçimi geçersiz.");
+
+        RuleForEach(x => x.KategoriDegerleri)
+            .MustAsync(async (item, cancellation) =>
+            {
+                return await _uow.Repository<Deger>()
+                    .AnyAsync(d =>
+                        d.Id == item.DegerId &&
+                        d.KategoriId == item.KategoriId &&
+                        !d.Silindi,
+                        cancellation);
+            })
+            .WithMessage("Seçilen değer ilgili kategoriye ait değil.");
     }
 
     private async Task<bool> ZorunluKategoriKontrol(

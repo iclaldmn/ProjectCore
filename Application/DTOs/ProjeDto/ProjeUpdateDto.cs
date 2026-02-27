@@ -7,17 +7,13 @@ namespace Application.DTOs.ProjeDto;
 public class ProjeUpdateDto : IMapFrom<Proje>
 {
     public long Id { get; set; }
-
     public string Adi { get; set; }
     public string Aciklama { get; set; }
-
     public decimal Bedeli { get; set; }
     public decimal IlaveSozlesmeBedeli { get; set; }
-
     public DateTime BaslangicTarihi { get; set; }
     public DateTime BitisTarihi { get; set; }
     public decimal ToplamBedel { get; set; }
-
     public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
     public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; } = new();
 
