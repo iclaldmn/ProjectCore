@@ -1,4 +1,5 @@
-﻿using Application.Commands;
+﻿using API;
+using Application.Commands;
 using Application.DTOs.ProjeDto;
 using Application.Queries.GetProjeList;
 using MediatR;
@@ -9,10 +10,11 @@ using System.Security.Claims;
 
 [ApiController]
 [Route("api/projeler")]
-//[Authorize(Roles = "Admin")]
+[Authorize]
 public class ProjeController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
+    [HasPermission("Proje.Create")]
     public async Task<IActionResult> Create([FromBody] CreateProjeCommand command)
     {
         var result = await mediator.Send(command);
@@ -24,6 +26,7 @@ public class ProjeController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id:long}")]
+    [HasPermission("Proje.Update")]
     public async Task<IActionResult> Update(
     long id,
     UpdateProjeCommand command)
@@ -40,6 +43,7 @@ public class ProjeController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{id:long}")]
+    [HasPermission("Proje.View")]
     public async Task<ActionResult<ProjeUpdateDto>> GetById(long id)
     {
         var result = await mediator.Send(new GetProjeByIdQuery { Id = id });
@@ -51,6 +55,7 @@ public class ProjeController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("list")]
+    [HasPermission("Proje.View")]
     public async Task<IActionResult> GetList()
     {
         var result = await mediator.Send(new GetProjeListQuery());
@@ -58,6 +63,7 @@ public class ProjeController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
+    [HasPermission("Proje.Delete")]
     public async Task<IActionResult> Delete(long id)
     {
         var result = await mediator.Send(new DeleteProjeCommand { Id = id });

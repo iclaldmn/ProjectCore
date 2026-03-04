@@ -15,8 +15,9 @@ public class AuthController : ControllerBase
         _mediator = mediator;
     }
 
+    // 🔐 LOGIN
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginCommand command)
+    public async Task<IActionResult> Login([FromBody] LoginCommand command)
     {
         var result = await _mediator.Send(command);
 
@@ -24,5 +25,17 @@ public class AuthController : ControllerBase
             return Unauthorized(result);
 
         return Ok(result);
+    }
+
+    // 🔓 LOGOUT
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        // JWT stateless olduğu için server tarafında işlem yok
+        return Ok(new
+        {
+            Success = true,
+            Message = "Çıkış başarılı"
+        });
     }
 }

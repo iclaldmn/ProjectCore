@@ -2,15 +2,18 @@
 using Application.Queries.GetKategoriDegerList;
 using Application.Queries.GetProjeList;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/kategoriler")]
+[Authorize]
 public class KategoriController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
+    [HasPermission("Kategori.View")]
     public async Task<IActionResult> Get()
     {
         var result = await mediator.Send(new GetKategorilerQuery());
@@ -18,6 +21,7 @@ public class KategoriController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
+    [HasPermission("Kategori.Create")]
     public async Task<IActionResult> Create(CreateKategoriCommand command)
     {
         var result = await mediator.Send(command);
@@ -26,6 +30,7 @@ public class KategoriController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [HasPermission("Kategori.Update")]
     public async Task<IActionResult> Update(long id, UpdateKategoriCommand command)
     {
         command.Id = id;
@@ -35,6 +40,7 @@ public class KategoriController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [HasPermission("Kategori.Delete")]
     public async Task<IActionResult> Delete(long id)
     {
         var result = await mediator.Send(new DeleteKategoriCommand { Id = id });
@@ -43,6 +49,7 @@ public class KategoriController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("proje")]
+    [HasPermission("Kategori.View")]
     public async Task<IActionResult> GetProjeKategorileri()
     {
         var result = await mediator.Send(new GetProjeKategorileriQuery());

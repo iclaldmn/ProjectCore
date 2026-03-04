@@ -1,4 +1,7 @@
-﻿using Application.Commands;
+﻿namespace Application.Handlers;
+
+using Application.Commands;
+using Application.Helpers;
 using Domain.Entities.Kullanici;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -8,58 +11,88 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Application.Handlers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Application.Commands;
+using Application.Helpers;
+using Domain.Entities.Kullanici;
+using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 public class LoginCommandHandler(
     UserManager<AppUser> userManager,
+    RoleManager<IdentityRole<long>> roleManager,
     IConfiguration configuration)
-    : IRequestHandler<LoginCommand, LoginResult>
+    : IRequestHandler<LoginCommand, Result<LoginResult>>
 {
-    public async Task<LoginResult> Handle(
+    public async Task<Result<LoginResult>> Handle(
         LoginCommand request,
         CancellationToken cancellationToken)
     {
-        // 🔍 Kullanıcıyı bul
+        // 🔍 Kullanıcı kontrolü
         var user = await userManager.FindByNameAsync(request.UserName);
 
         if (user == null)
-            throw new FluentValidation.ValidationException(
-                "Kullanıcı adı veya şifre hatalı");
+            return Result<LoginResult>.Fail("Kullanıcı adı veya şifre hatalı.");
 
-        // 🔐 Şifre kontrolü
-        var passwordValid = await userManager.CheckPasswordAsync(user, request.Password);
+        if (!user.IsActive)
+            return Result<LoginResult>.Fail("Kullanıcı pasif.");
+
+        var passwordValid =
+            await userManager.CheckPasswordAsync(user, request.Password);
 
         if (!passwordValid)
-            throw new FluentValidation.ValidationException("Kullanıcı adı veya şifre hatalı");
+            return Result<LoginResult>.Fail("Kullanıcı adı veya şifre hatalı.");
 
-        // 🔑 Claims
+        // 🔐 Temel Claims
         var claims = new List<Claim>
         {
-            // ✅ ASP.NET Core uyumlu
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName!),
 
-            // 🔁 Mevcut yapı bozulmasın diye KALIYOR
+            // JWT standard claimleri
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
-
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        // 👤 ROLLERİ EKLE (EN KRİTİK KISIM)
+        // 🔥 Roller + Permission Claimleri
         var roles = await userManager.GetRolesAsync(user);
 
-        foreach (var role in roles)
+        var permissionSet = new HashSet<string>(); // duplicate önler
+
+        foreach (var roleName in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim(ClaimTypes.Role, roleName));
+
+            var role = await roleManager.FindByNameAsync(roleName);
+            if (role == null)
+                continue;
+
+            var roleClaims = await roleManager.GetClaimsAsync(role);
+
+            foreach (var rc in roleClaims
+                         .Where(c => c.Type == "permission"))
+            {
+                if (permissionSet.Add(rc.Value))
+                {
+                    claims.Add(new Claim("permission", rc.Value));
+                }
+            }
         }
 
-        // 🔐 JWT Key
+        // 🔑 JWT oluşturma
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)
         );
 
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(
+            key,
+            SecurityAlgorithms.HmacSha256
+        );
 
         var expires = DateTime.UtcNow.AddMinutes(30);
 
@@ -71,11 +104,13 @@ public class LoginCommandHandler(
             signingCredentials: creds
         );
 
-        return new LoginResult
-        {
-            Success = true,
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
-            Expiration = expires
-        };
+        return Result<LoginResult>.Ok(
+            new LoginResult
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = expires
+            },
+            "Giriş başarılı."
+        );
     }
 }

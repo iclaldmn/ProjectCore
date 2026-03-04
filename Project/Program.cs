@@ -1,4 +1,5 @@
 ﻿using Application;
+using Application.Common;
 using Domain.Entities.Kullanici;
 using Infrastructure.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -8,62 +9,52 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Repository.Contracts;
 using Repository.Interfaces;
+using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =======================
-// 🔹 CONTROLLERS
-// =======================
+//builder.Host.UseDefaultServiceProvider(options =>
+//{
+//    options.ValidateScopes = true;
+//    options.ValidateOnBuild = true;
+//});
+
+#region SERVICES
+
 builder.Services.AddControllers();
 
-// =======================
-// 🔹 CORS (REACT)
-// =======================
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact",
-        policy =>
-        {
-            policy
-                .WithOrigins("http://localhost:5175")
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowReact", policy =>
+    {
+        policy.WithOrigins("http://localhost:5175")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
-// =======================
-// 🔹 APPLICATION
-// =======================
-// 🔥 AutoMapper + MediatR burada YÜKLENİYOR (Application katmanında)
 builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
 
-// =======================
-// 🔹 EF CORE
-// =======================
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 
-// =======================
-// 🔹 IDENTITY
-// =======================
 builder.Services.AddIdentity<AppUser, IdentityRole<long>>(options =>
 {
-    options.Password.RequireDigit = false;
+    options.Password.RequireDigit = true;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
+    options.User.RequireUniqueEmail = true;
 })
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+.AddEntityFrameworkStores<AppDbContext>()   // 🔥 BU YOKTU
+.AddDefaultTokenProviders();                // 🔥 BU DA YOKTU
 
-// =======================
-// 🔹 AUTH (JWT)
-// =======================
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,12 +62,16 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero,
 
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -86,17 +81,27 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // 🔥 Tüm permission’lar için otomatik policy
+    foreach (var permission in Permissions.GetAll())
+    {
+        options.AddPolicy(permission,
+            policy => policy.RequireClaim("permission", permission));
+    }
+});
 
-// =======================
-// 🔹 UOW + REPO
-// =======================
+//var testPermissions = Permissions.GetAll();
+//Console.WriteLine("PERMISSION COUNT: " + testPermissions.Count);
+
+//foreach (var p in testPermissions)
+//{
+//    Console.WriteLine(p);
+//}
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// =======================
-// 🔹 SWAGGER + JWT
-// =======================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -126,11 +131,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+#endregion
+
 var app = builder.Build();
 
-// =======================
-// 🔹 MIDDLEWARE
-// =======================
+#region MIDDLEWARE
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -138,7 +144,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllowReact");
 app.UseCors("AllowReact");
 
 app.UseAuthentication();
@@ -146,18 +152,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// =======================
-// 🔹 SEED
-// =======================
-await SeedAdminUserAsync(app);
+#endregion
+
+
+await SeedUsersAndRolesAsync(app);
 
 app.Run();
 
+#region SEED
 
-// =======================
-// 🔹 SEED METHOD
-// =======================
-static async Task SeedAdminUserAsync(WebApplication app)
+static async Task SeedUsersAndRolesAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
 
@@ -166,39 +170,95 @@ static async Task SeedAdminUserAsync(WebApplication app)
 
     string[] roles = { "Admin", "User" };
 
-    foreach (var role in roles)
+    foreach (var roleName in roles)
     {
-        if (!await roleManager.RoleExistsAsync(role))
+        if (!await roleManager.RoleExistsAsync(roleName))
         {
-            await roleManager.CreateAsync(new IdentityRole<long>(role));
+            await roleManager.CreateAsync(new IdentityRole<long>(roleName));
         }
     }
 
-    var admin = await userManager.FindByNameAsync("admin");
+    // 🔥 ADMIN ROLE → TÜM PERMISSION'LAR
+    var adminRole = await roleManager.FindByNameAsync("Admin");
+
+    if (adminRole != null)
+    {
+        var existingClaims = await roleManager.GetClaimsAsync(adminRole);
+        var allPermissions = Permissions.GetAll();
+
+        foreach (var permission in allPermissions)
+        {
+            if (!existingClaims.Any(c =>
+                c.Type == "permission" &&
+                c.Value == permission))
+            {
+                await roleManager.AddClaimAsync(
+                    adminRole,
+                    new Claim("permission", permission));
+            }
+        }
+    }
+
+    // 🔹 USER ROLE → SADECE VIEW
+    var userRole = await roleManager.FindByNameAsync("User");
+
+    if (userRole != null)
+    {
+        var existingClaims = await roleManager.GetClaimsAsync(userRole);
+
+        var userPermissions = new[]
+        {
+            Permissions.Proje.View
+        };
+
+        foreach (var permission in userPermissions)
+        {
+            if (!existingClaims.Any(c =>
+                c.Type == "permission" &&
+                c.Value == permission))
+            {
+                await roleManager.AddClaimAsync(
+                    userRole,
+                    new Claim("permission", permission));
+            }
+        }
+    }
+
+    // 🔹 ADMIN USER
+    var adminEmail = "admin@test.com";
+    var admin = await userManager.FindByEmailAsync(adminEmail);
+
     if (admin == null)
     {
         admin = new AppUser
         {
-            UserName = "admin",
-            Email = "admin@test.com",
-            EmailConfirmed = true
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            IsActive = true
         };
 
         await userManager.CreateAsync(admin, "Muaz_123");
         await userManager.AddToRoleAsync(admin, "Admin");
     }
 
-    var user = await userManager.FindByNameAsync("user1");
+    // 🔹 NORMAL USER
+    var userEmail = "user1@test.com";
+    var user = await userManager.FindByEmailAsync(userEmail);
+
     if (user == null)
     {
         user = new AppUser
         {
-            UserName = "user1",
-            Email = "user1@test.com",
-            EmailConfirmed = true
+            UserName = userEmail,
+            Email = userEmail,
+            EmailConfirmed = true,
+            IsActive = true
         };
 
         await userManager.CreateAsync(user, "User123");
         await userManager.AddToRoleAsync(user, "User");
     }
 }
+
+#endregion

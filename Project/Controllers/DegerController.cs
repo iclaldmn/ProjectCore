@@ -8,11 +8,12 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/degerler")]
-//[Authorize(Roles = "Admin")]
+[Authorize]
 public class DegerController(IMediator mediator) : ControllerBase
 {
     // 🔹 GET api/degerler/kategori/5
     [HttpGet("kategori/{kategoriId:long}")]
+    [HasPermission("Deger.View")]
     public async Task<IActionResult> GetByKategori(long kategoriId)
     {
         var result = await mediator.Send(
@@ -24,6 +25,7 @@ public class DegerController(IMediator mediator) : ControllerBase
 
     // 🔹 POST api/degerler
     [HttpPost]
+    [HasPermission("Deger.Create")]
     public async Task<IActionResult> Create([FromBody] CreateDegerCommand command)
     {
         var result = await mediator.Send(command);
@@ -36,6 +38,7 @@ public class DegerController(IMediator mediator) : ControllerBase
 
     // 🔹 PUT api/degerler/5
     [HttpPut("{id:long}")]
+    [HasPermission("Deger.Update")]
     public async Task<IActionResult> Update(long id, [FromBody] UpdateDegerCommand command)
     {
         command.Id = id;
@@ -50,6 +53,7 @@ public class DegerController(IMediator mediator) : ControllerBase
 
     // 🔹 DELETE api/degerler/5
     [HttpDelete("{id:long}")]
+    [HasPermission("Deger.Delete")]
     public async Task<IActionResult> Delete(long id)
     {
         var result = await mediator.Send(

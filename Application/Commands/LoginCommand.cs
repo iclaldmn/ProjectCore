@@ -1,11 +1,10 @@
-﻿using Application.Common;
-using Domain.Entities.ProjeModul;
+﻿using Application.Helpers;
 using MediatR;
 
 namespace Application.Commands;
 
-public class LoginCommand : IRequest<LoginResult>
+public class LoginCommand : IRequest<Result<LoginResult>>
 {
-    public string UserName { get; set; }
-    public string Password { get; set; }
+    public string UserName { get; set; } = default!;
+    public string Password { get; set; } = default!;
 }

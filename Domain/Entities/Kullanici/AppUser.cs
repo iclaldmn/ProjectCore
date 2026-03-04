@@ -9,5 +9,5 @@ namespace Domain.Entities.Kullanici;
 
 public class AppUser : IdentityUser<long>
 {
-    // Şimdilik ekstra alan yok
+    public bool IsActive { get; set; } = true;
 }
