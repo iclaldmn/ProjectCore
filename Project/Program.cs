@@ -4,6 +4,7 @@ using Domain.Entities.Kullanici;
 using Infrastructure.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -11,6 +12,11 @@ using Repository.Contracts;
 using Repository.Interfaces;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.OData;
+using Microsoft.OData.ModelBuilder;
+using Microsoft.OData.Edm;
+using Domain.Entities.ProjeModul;
+using Domain.Entities.Ortak;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +28,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 #region SERVICES
 
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
+
+builder.Services.AddControllers()
+    .AddOData(options =>
+        options.Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100)
+        .AddRouteComponents("odata", GetEdmModel())
+    );
 
 builder.Services.AddCors(options =>
 {
@@ -131,6 +148,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
+
+
 #endregion
 
 var app = builder.Build();
@@ -158,6 +178,16 @@ app.MapControllers();
 await SeedUsersAndRolesAsync(app);
 
 app.Run();
+
+static IEdmModel GetEdmModel()
+{
+    var modelBuilder = new ODataConventionModelBuilder();
+
+    modelBuilder.EntitySet<Proje>("Projeler");
+    modelBuilder.EntitySet<Kategori>("Kategoriler");
+
+    return modelBuilder.GetEdmModel();
+}
 
 #region SEED
 

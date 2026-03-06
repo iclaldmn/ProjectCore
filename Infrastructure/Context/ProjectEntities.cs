@@ -1,4 +1,5 @@
-﻿using Domain.Entities.ProjeModul;
+﻿using Domain.Entities.Ortak;
+using Domain.Entities.ProjeModul;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Context;
@@ -6,6 +7,7 @@ namespace Infrastructure.Context;
 public partial class AppDbContext
 {
     public DbSet<Proje> Projeler => Set<Proje>();
+
 }
 
 
