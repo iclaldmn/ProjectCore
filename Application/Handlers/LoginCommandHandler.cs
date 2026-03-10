@@ -24,7 +24,7 @@ using Microsoft.IdentityModel.Tokens;
 
 public class LoginCommandHandler(
     UserManager<AppUser> userManager,
-    RoleManager<IdentityRole<long>> roleManager,
+    RoleManager<AppRole> roleManager,
     IConfiguration configuration)
     : IRequestHandler<LoginCommand, Result<LoginResult>>
 {

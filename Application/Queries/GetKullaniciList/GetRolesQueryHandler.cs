@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.KullaniciDto;
 using Application.Helpers;
+using Domain.Entities.Kullanici;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Application.Queries.GetKullaniciList;
 
 public class GetRolesQueryHandler(
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<GetRolesQuery, Result<List<RoleDto>>>
 {
     public async Task<Result<List<RoleDto>>> Handle(

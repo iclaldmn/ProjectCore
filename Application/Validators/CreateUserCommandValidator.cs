@@ -15,7 +15,7 @@ public class CreateUserCommandValidator
 {
     public CreateUserCommandValidator(
         UserManager<AppUser> userManager,
-        RoleManager<IdentityRole<long>> roleManager)
+        RoleManager<AppRole> roleManager)
     {
         RuleFor(x => x.UserName)
             .NotEmpty().WithMessage("Kullanıcı adı zorunludur.")

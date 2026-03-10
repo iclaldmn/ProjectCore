@@ -61,7 +61,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddIdentity<AppUser, IdentityRole<long>>(options =>
+builder.Services.AddIdentity<AppUser, AppRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequireUppercase = false;
@@ -185,6 +185,10 @@ static IEdmModel GetEdmModel()
 
     modelBuilder.EntitySet<Proje>("Projeler");
     modelBuilder.EntitySet<Kategori>("Kategoriler");
+    modelBuilder.EntitySet<Deger>("Degerler");
+    modelBuilder.EntitySet<AppUser>("Kullanicilar");
+    modelBuilder.EntitySet<AppRole>("Roller");
+
 
     return modelBuilder.GetEdmModel();
 }
@@ -196,7 +200,7 @@ static async Task SeedUsersAndRolesAsync(WebApplication app)
     using var scope = app.Services.CreateScope();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<long>>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
 
     string[] roles = { "Admin", "User" };
 
@@ -204,7 +208,10 @@ static async Task SeedUsersAndRolesAsync(WebApplication app)
     {
         if (!await roleManager.RoleExistsAsync(roleName))
         {
-            await roleManager.CreateAsync(new IdentityRole<long>(roleName));
+            await roleManager.CreateAsync(new AppRole
+            {
+                Name = roleName
+            });
         }
     }
 

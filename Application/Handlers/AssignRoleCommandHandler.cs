@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 public class AssignRoleCommandHandler(
     UserManager<AppUser> userManager,
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<AssignRoleCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(

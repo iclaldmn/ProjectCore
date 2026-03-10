@@ -13,7 +13,7 @@ namespace Application.Handlers;
 
 public class UpdateUserCommandHandler(
     UserManager<AppUser> userManager,
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<UpdateUserCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(

@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 public class DeleteRoleCommandHandler(
-    RoleManager<IdentityRole<long>> roleManager,
+    RoleManager<AppRole> roleManager,
     UserManager<AppUser> userManager)
     : IRequestHandler<DeleteRoleCommand, Result<bool>>
 {

@@ -1,5 +1,6 @@
 ﻿using Application.Commands;
 using Application.Helpers;
+using Domain.Entities.Kullanici;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Application.Handlers;
 
 public class CreateRoleCommandHandler(
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<CreateRoleCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(
@@ -21,7 +22,7 @@ public class CreateRoleCommandHandler(
         if (await roleManager.RoleExistsAsync(request.Name))
             return Result<long>.Fail("Bu rol zaten mevcut.");
 
-        var role = new IdentityRole<long>
+        var role = new AppRole
         {
             Name = request.Name
         };

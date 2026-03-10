@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Application.Handlers;
 public class CreateUserCommandHandler(
     UserManager<AppUser> userManager,
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<CreateUserCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(

@@ -1,5 +1,6 @@
 ﻿using Application.Commands;
 using Application.Helpers;
+using Domain.Entities.Kullanici;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Application.Handlers;
 
 public class UpdateRoleCommandHandler(
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<UpdateRoleCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(

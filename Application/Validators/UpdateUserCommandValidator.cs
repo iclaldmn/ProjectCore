@@ -15,7 +15,7 @@ public class UpdateUserCommandValidator
 {
     public UpdateUserCommandValidator(
         UserManager<AppUser> userManager,
-        RoleManager<IdentityRole<long>> roleManager)
+        RoleManager<AppRole> roleManager)
     {
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("Geçersiz kullanıcı Id.");

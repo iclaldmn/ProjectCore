@@ -1,4 +1,5 @@
 ﻿using Application.Helpers;
+using Domain.Entities.Kullanici;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace Application.Queries.GetKullaniciList;
 
 public class GetRolePermissionsQueryHandler(
-    RoleManager<IdentityRole<long>> roleManager)
+    RoleManager<AppRole> roleManager)
     : IRequestHandler<GetRolePermissionsQuery, Result<List<string>>>
 {
     public async Task<Result<List<string>>> Handle(
