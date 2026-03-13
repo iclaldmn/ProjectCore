@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.Kullanici;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,12 @@ public partial class AppDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<AppUser>()
+        .HasMany<IdentityUserRole<long>>(u => u.UserRoles)
+        .WithOne()
+        .HasForeignKey(ur => ur.UserId)
+        .IsRequired();
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(AppDbContext).Assembly

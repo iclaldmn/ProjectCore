@@ -10,4 +10,6 @@ namespace Domain.Entities.Kullanici;
 public class AppUser : IdentityUser<long>
 {
     public bool IsActive { get; set; } = true;
+
+    public ICollection<IdentityUserRole<long>> UserRoles { get; set; }
 }
