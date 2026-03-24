@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.Kullanici;
+using Domain.Entities.Log;
 using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using Microsoft.AspNetCore.Identity;
@@ -11,8 +12,8 @@ public partial class AppDbContext
     public DbSet<Proje> Projeler => Set<Proje>();
     public DbSet<Kategori> Kategoriler => Set<Kategori>();
     public DbSet<Deger> Degerler => Set<Deger>();
-
     public DbSet<AppUser> Kullanicilar => Set<AppUser>();
     public DbSet<AppRole> Roller => Set<AppRole>();
     public DbSet<IdentityUserRole<long>> UserRoles { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 }

@@ -17,6 +17,7 @@ using Microsoft.OData.ModelBuilder;
 using Microsoft.OData.Edm;
 using Domain.Entities.ProjeModul;
 using Domain.Entities.Ortak;
+using Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,6 +119,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

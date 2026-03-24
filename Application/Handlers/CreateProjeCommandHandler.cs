@@ -1,6 +1,8 @@
 ﻿using Application.Commands;
 using Application.Helpers;
+using Application.Services;
 using AutoMapper;
+using Domain.Entities.Log;
 using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using MediatR;
@@ -10,7 +12,8 @@ namespace Application.Handlers;
 
 public class CreateProjeCommandHandler(
     IUnitOfWork uow,
-    IMapper mapper
+    IMapper mapper,
+    IAuditLogService auditLog
 ) : IRequestHandler<CreateProjeCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(
@@ -69,6 +72,13 @@ public class CreateProjeCommandHandler(
 
         await uow.Repository<Proje>().AddAsync(entity);
         await uow.SaveAsync(cancellationToken);
+
+        // 🔥 Audit Log
+        await auditLog.LogCreateAsync("Proje", entity.Id.ToString());
+        //await auditLog.LogAsync(
+        //    "Create",
+        //    "Proje",
+        //    entity.Id.ToString());
 
         return Result<long>.Ok(entity.Id, "Proje başarıyla oluşturuldu");
     }
