@@ -8,6 +8,16 @@ namespace Application.Services;
 
 public interface IAuditLogService
 {
-    Task LogAsync(string action, string entityName, string entityId);
-    Task LogCreateAsync(string entityName, string entityId);
+    Task LogCreateAsync(
+            string entityName, 
+            string entityId, 
+            object newValues);
+    Task LogUpdateAsync(
+            string entityName,
+            string entityId,
+            object changes);
+    Task LogDeleteAsync(
+            string entityName,
+            string entityId,
+            object oldValues);
 }

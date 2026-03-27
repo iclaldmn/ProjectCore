@@ -74,7 +74,7 @@ public class CreateProjeCommandHandler(
         await uow.SaveAsync(cancellationToken);
 
         // 🔥 Audit Log
-        await auditLog.LogCreateAsync("Proje", entity.Id.ToString());
+        //await auditLog.LogCreateAsync("Proje", entity.Id.ToString());
         //await auditLog.LogAsync(
         //    "Create",
         //    "Proje",

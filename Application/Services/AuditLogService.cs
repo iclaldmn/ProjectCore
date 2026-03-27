@@ -11,76 +11,107 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Application.Services;
-
 public class AuditLogService : IAuditLogService
 {
-    private readonly AppDbContext _context;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly AppDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuditLogService(
-        AppDbContext context,
-        IHttpContextAccessor httpContextAccessor)
-    {
-        _context = context;
-        _httpContextAccessor = httpContextAccessor;
-    }
-
-    public async Task LogAsync(
-        string action,
-        string entityName,
-        string entityId)
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userName = user?.Identity?.Name;
-
-        var log = new AuditLog
+        public AuditLogService(
+            AppDbContext context,
+            IHttpContextAccessor httpContextAccessor)
         {
-            UserId = userId,
-            UserName = userName,
-            Action = action,
-            EntityName = entityName,
-            EntityId = entityId,
-            Changes = "{}",
-            CreatedAt = DateTime.UtcNow
-        };
+            _context = context;
+            _httpContextAccessor = httpContextAccessor;
+        }
 
-        _context.AuditLogs.Add(log);
-
-        await _context.SaveChangesAsync();
-    }
-
-    // 🔥 GENERIC CREATE (asıl kullanacağın)
-    public async Task LogCreateAsync(
-    string entityName,
-    string entityId)
-    {
-        var user = _httpContextAccessor.HttpContext?.User;
-
-        var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userName = user?.Identity?.Name;
-
-        var createJson = new
+        private (string userId, string userName) GetUser()
         {
-            type = "create"
-        };
+            var user = _httpContextAccessor.HttpContext?.User;
 
-        var log = new AuditLog
+            var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = user?.Identity?.Name ?? "System";
+
+            return (userId, userName);
+        }
+
+        public async Task LogCreateAsync(
+            string entityName,
+            string entityId,
+            object newValues)
         {
-            UserId = userId,
-            UserName = userName ?? "System",
-            Action = "Create",
-            EntityName = entityName,
-            EntityId = entityId,
-            Changes = JsonSerializer.Serialize(createJson),
-            CreatedAt = DateTime.UtcNow
-        };
+            var (userId, userName) = GetUser();
 
-        _context.AuditLogs.Add(log);
-        await _context.SaveChangesAsync();
+            var log = new AuditLog
+            {
+                UserId = userId,
+                UserName = userName,
+                Action = "Create",
+                EntityName = entityName,
+                EntityId = entityId,
+                Changes = JsonSerializer.Serialize(new
+                {
+                    action = "create",
+                    entityId,
+                    @new = newValues
+                }),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AuditLogs.Add(log);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task LogUpdateAsync(
+            string entityName,
+            string entityId,
+            object changes)
+        {
+            var (userId, userName) = GetUser();
+
+            var log = new AuditLog
+            {
+                UserId = userId,
+                UserName = userName,
+                Action = "Update",
+                EntityName = entityName,
+                EntityId = entityId,
+                Changes = JsonSerializer.Serialize(new
+                {
+                    action = "update",
+                    entityId,
+                    changes
+                }),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AuditLogs.Add(log);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task LogDeleteAsync(
+            string entityName,
+            string entityId,
+            object oldValues)
+        {
+            var (userId, userName) = GetUser();
+
+            var log = new AuditLog
+            {
+                UserId = userId,
+                UserName = userName,
+                Action = "Delete",
+                EntityName = entityName,
+                EntityId = entityId,
+                Changes = JsonSerializer.Serialize(new
+                {
+                    action = "delete",
+                    entityId,
+                    old = oldValues
+                }),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.AuditLogs.Add(log);
+            await _context.SaveChangesAsync();
+        }
     }
-
-
-
-}

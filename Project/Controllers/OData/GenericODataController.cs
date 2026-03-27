@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace API.Controllers.OData;
 
@@ -22,8 +23,22 @@ public class GenericODataController : ControllerBase
     [EnableQuery(PageSize = 50)]
     public IActionResult Get([FromQuery] string entity)
     {
+
+        var allowedEntities = new[] {  "Projeler",
+            "Kategoriler",
+            "Degerler",
+            "Kullanicilar",
+            "Roller",
+            "AuditLogs",
+            "UserRoles"
+        };
+
+        if (!allowedEntities.Contains(entity))
+            return Unauthorized("Bu entity'e erişim yok");
+
         if (string.IsNullOrWhiteSpace(entity))
             return BadRequest("Entity parametresi zorunludur");
+
 
         var dbSetProperty = typeof(AppDbContext)
             .GetProperties()

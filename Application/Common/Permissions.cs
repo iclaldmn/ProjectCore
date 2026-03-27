@@ -50,6 +50,10 @@ public static class Permissions
         public const string Delete = "Role.Delete";
         public const string PermissionAssign = "Role.PermissionAssign";
     }
+    public static class AuditLog
+    {
+        public const string View = "AuditLog.View";
+    }
 
     // ================= TÜM PERMISSIONLARI AL =================
     public static List<string> GetAll()
