@@ -1,7 +1,9 @@
-﻿using Domain.Entities.Kullanici;
+﻿using Domain.Entities.FileMinio;
+using Domain.Entities.Kullanici;
 using Domain.Entities.Log;
 using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
+using Domain.Entities.FileMinio;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +16,9 @@ public partial class AppDbContext
     public DbSet<Deger> Degerler => Set<Deger>();
     public DbSet<AppUser> Kullanicilar => Set<AppUser>();
     public DbSet<AppRole> Roller => Set<AppRole>();
-    public DbSet<IdentityUserRole<long>> UserRoles { get; set; }
+    //public DbSet<IdentityUserRole<long>> UserRoles { get; set; }
+    public DbSet<AppUserRole> UserRoles { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<FileEntity> Files => Set<FileEntity>();
+    public DbSet<FileReference> FileReferences => Set<FileReference>();
 }

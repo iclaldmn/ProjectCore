@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.Kullanici;
 using Domain.Entities.Log;
+using Infrastructure.FluentApi.FileMinio;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -8,7 +9,15 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Context;
 
 public partial class AppDbContext
-    : IdentityDbContext<AppUser, AppRole, long>
+    : IdentityDbContext<
+        AppUser,
+    AppRole,
+    long,
+    IdentityUserClaim<long>,
+    AppUserRole,
+    IdentityUserLogin<long>,
+    IdentityRoleClaim<long>,
+    IdentityUserToken<long>>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -24,11 +33,21 @@ public partial class AppDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<AppUser>()
-        .HasMany<IdentityUserRole<long>>(u => u.UserRoles)
-        .WithOne()
-        .HasForeignKey(ur => ur.UserId)
-        .IsRequired();
+        modelBuilder.Entity<AppUserRole>()
+            .HasOne(x => x.User)
+            .WithMany(x => x.UserRoles)
+            .HasForeignKey(x => x.UserId);
+
+        modelBuilder.Entity<AppUserRole>()
+            .HasOne(x => x.Role)
+            .WithMany(x => x.UserRoles)
+            .HasForeignKey(x => x.RoleId);
+
+        //modelBuilder.Entity<AppUser>()
+        //.HasMany<IdentityUserRole<long>>(u => u.UserRoles)
+        //.WithOne()
+        //.HasForeignKey(ur => ur.UserId)
+        //.IsRequired();
 
 
         modelBuilder.ApplyConfigurationsFromAssembly(

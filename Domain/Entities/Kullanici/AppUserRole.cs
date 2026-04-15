@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace Domain.Entities.Kullanici;
 
-public class AppRole : IdentityRole<long>
+public class AppUserRole : IdentityUserRole<long>
 {
-    public ICollection<AppUserRole> UserRoles { get; set; }
+    public AppUser User { get; set; }
+    public AppRole Role { get; set; }
 }

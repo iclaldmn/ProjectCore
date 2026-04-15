@@ -1,5 +1,6 @@
 ﻿using Application.Commands;
 using Application.Helpers;
+using Domain.Entities.FileMinio;
 using Domain.Entities.ProjeModul;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,13 @@ public class DeleteProjeCommandHandler(
             .Include(x => x.KategoriDegerleri)   // 🔥 önemli
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
+        var fileReferences = await uow.Repository<FileReference>()
+            .Query()
+            .Where(x => x.EntityId == entity.Id
+                     && x.EntityName == "Project"
+                     && !x.Silindi)
+            .ToListAsync(cancellationToken);
+
         if (entity == null)
             return Result<long>.Fail("Proje bulunamadı");
 
@@ -45,6 +53,11 @@ public class DeleteProjeCommandHandler(
         foreach (var item in entity.KategoriDegerleri)
         {
             item.Silindi = true;
+        }
+
+        foreach (var file in fileReferences)
+        {
+            file.Silindi = true;
         }
 
         await uow.SaveAsync(cancellationToken);

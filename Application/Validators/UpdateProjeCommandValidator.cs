@@ -135,7 +135,25 @@ public class UpdateProjeCommandValidator
             )
             .WithMessage("İlçe dağılım toplamı proje toplam bedeline eşit olmalıdır.");
 
-    }
+        RuleFor(x => x)
+            .MustAsync(async (command, cancellation) =>
+            {
+                if (string.IsNullOrWhiteSpace(command.Adi))
+                    return true;
+
+                var normalized = command.Adi.Trim().ToLower();
+
+                return !await _uow.Repository<Proje>()
+                    .Query()
+                    .AnyAsync(x =>
+                        x.Adi.ToLower() == normalized &&
+                        x.Id != command.Id &&
+                        !x.Silindi,
+                        cancellation);
+            })
+            .WithMessage("Bu isimde başka bir proje zaten var.");
+
+            }
 
     private async Task<bool> ProjeVarMi(
         long projeId,

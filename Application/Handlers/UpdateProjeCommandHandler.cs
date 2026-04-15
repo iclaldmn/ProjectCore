@@ -30,6 +30,17 @@ public class UpdateProjeCommandHandler(
         if (entity == null)
             return Result<long>.Fail("Proje bulunamadı");
 
+        var exists = await uow.Repository<Proje>()
+            .Query()
+            .AnyAsync(x => x.Adi == request.Adi
+                        && x.Id != request.Id
+                        && !x.Silindi,
+                        cancellationToken);
+
+        if (exists)
+            return Result<long>.Fail("Bu isimde bir proje zaten var");
+
+
         // ✅ Scalar alanları otomatik map et
         mapper.Map(request, entity);
 

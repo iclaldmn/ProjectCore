@@ -28,7 +28,7 @@ public class UpdateUserCommandHandler(
         // 🔹 Email başka kullanıcıda var mı?
         var existingEmailUser = await userManager.FindByEmailAsync(request.Email);
         if (existingEmailUser != null && existingEmailUser.Id != user.Id)
-            return Result<long>.Fail("Bu email başka kullanıcı tarafından kullanılıyor.");
+            return Result<long>.Fail("Bu email başka kullanıcı tarafından kullanılıyor.");//bunu validation kısmında çözebilirsin burada çözemediklerini yaz
 
         // 🔹 Basic bilgiler
         user.UserName = request.UserName;

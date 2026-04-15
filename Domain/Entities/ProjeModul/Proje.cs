@@ -1,4 +1,5 @@
 ﻿using Domain.Common;
+using Domain.Entities.FileMinio;
 using Domain.Entities.Ortak;
 
 namespace Domain.Entities.ProjeModul
@@ -14,6 +15,8 @@ namespace Domain.Entities.ProjeModul
         public decimal ToplamBedel { get; set; }
         public List<ProjeIlceDagilimi> IlceDagilimlari { get; set; } = new();
         public List<ProjeKategoriDeger> KategoriDegerleri { get; set; } = new();
+
+        public ICollection<FileReference> FileReferences { get; set; }
 
     }
 

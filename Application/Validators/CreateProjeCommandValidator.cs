@@ -1,5 +1,6 @@
 ﻿using Application.Commands;
 using Domain.Entities.Ortak;
+using Domain.Entities.ProjeModul;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
@@ -92,7 +93,20 @@ public class CreateProjeCommandValidator
                         cancellation);
             })
             .WithMessage("Seçilen değer ilgili kategoriye ait değil.");
-    }
+        RuleFor(x => x.Adi)
+            .MustAsync(async (adi, cancellation) =>
+            {
+                if (string.IsNullOrWhiteSpace(adi))
+                    return true;
+
+                var normalized = adi.Trim().ToLower();
+
+                return !await _uow.Repository<Proje>()
+                    .Query()
+                    .AnyAsync(x => x.Adi.ToLower() == normalized && !x.Silindi, cancellation);
+            })
+            .WithMessage("Bu isimde bir proje zaten var.");
+            }
 
     private async Task<bool> ZorunluKategoriKontrol(
         CreateProjeCommand command,

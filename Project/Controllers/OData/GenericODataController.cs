@@ -3,14 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
-
-namespace API.Controllers.OData;
 
 [ApiController]
-[Route("api/odata")]
+[Route("api/generic")]  // ✅ farklı prefix — OData middleware'i karışmaz
 [Authorize]
-public class GenericODataController : ControllerBase
+public class GenericODataController : ControllerBase  // ODataController değil
 {
     private readonly AppDbContext _context;
 
@@ -19,26 +16,21 @@ public class GenericODataController : ControllerBase
         _context = context;
     }
 
-    [HttpGet("query")]
-    [EnableQuery(PageSize = 50)]
-    public IActionResult Get([FromQuery] string entity)
+    [HttpGet("{entity}")]
+    [EnableQuery(MaxTop = 1000)]
+    public IActionResult Get(string entity, ODataQueryOptions options)
     {
-
-        var allowedEntities = new[] {  "Projeler",
-            "Kategoriler",
-            "Degerler",
-            "Kullanicilar",
-            "Roller",
-            "AuditLogs",
-            "UserRoles"
+        var allowedEntities = new[]
+        {
+            "Projeler", "Kategoriler", "Degerler", "Kullanicilar",
+            "Roller", "AuditLogs", "UserRoles", "FileReferences", "FileEntities"
         };
-
-        if (!allowedEntities.Contains(entity))
-            return Unauthorized("Bu entity'e erişim yok");
 
         if (string.IsNullOrWhiteSpace(entity))
             return BadRequest("Entity parametresi zorunludur");
 
+        if (!allowedEntities.Contains(entity))
+            return Unauthorized("Bu entity'e erişim yok");
 
         var dbSetProperty = typeof(AppDbContext)
             .GetProperties()
@@ -52,9 +44,24 @@ public class GenericODataController : ControllerBase
 
         var dbSet = dbSetProperty.GetValue(_context);
 
-        if (dbSet is IQueryable queryable)
-            return Ok(queryable);
+        if (dbSet is not IQueryable queryable)
+            return BadRequest("Entity query edilemiyor");
 
-        return BadRequest("Entity query edilemiyor");
+        // OData parametrelerini manuel uygula
+        var querySettings = new ODataQuerySettings { PageSize = 100 };
+        var applied = options.ApplyTo(queryable, querySettings);
+
+        // $count için toplam kayıt sayısı
+        long? count = null;
+        if (options.Count?.Value == true)
+        {
+            count = queryable.Cast<object>().LongCount();
+        }
+
+        return Ok(new
+        {
+            odatacount = count,  // @odata.count
+            value = applied
+        });
     }
 }

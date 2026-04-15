@@ -11,17 +11,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Application.Commands;
-using Application.Helpers;
-using Domain.Entities.Kullanici;
-using MediatR;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-
 public class LoginCommandHandler(
     UserManager<AppUser> userManager,
     RoleManager<AppRole> roleManager,

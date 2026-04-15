@@ -6,6 +6,7 @@ using Domain.Entities.Log;
 using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 
 namespace Application.Handlers;
@@ -41,6 +42,13 @@ public class CreateProjeCommandHandler(
             if (duplicateKategori)
                 return Result<long>.Fail("Aynı kategori birden fazla seçilemez");
         }
+
+        var exists = await uow.Repository<Proje>()
+            .Query()
+            .AnyAsync(x => x.Adi == request.Adi && !x.Silindi, cancellationToken);
+
+            if (exists)
+                    return Result<long>.Fail("Bu isimde bir proje zaten var");
 
         var entity = mapper.Map<Proje>(request);
 

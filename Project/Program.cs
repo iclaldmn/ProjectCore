@@ -18,8 +18,27 @@ using Microsoft.OData.Edm;
 using Domain.Entities.ProjeModul;
 using Domain.Entities.Ortak;
 using Application.Services;
+using WebAPI.Middleware;
+using Serilog.Sinks.Graylog;
+using Serilog;
+using Application.Handlers;
+using Domain.Entities.FileMinio;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Graylog(new GraylogSinkOptions
+    {
+        HostnameOrAddress = "127.0.0.1", // 🔥 kritik
+        Port = 12201,
+        TransportType = Serilog.Sinks.Graylog.Core.Transport.TransportType.Udp
+    })
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 //builder.Host.UseDefaultServiceProvider(options =>
 //{
@@ -31,16 +50,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddControllers();
 
-builder.Services.AddControllers()
-    .AddOData(options =>
-        options.Select()
-        .Filter()
-        .OrderBy()
-        .Expand()
-        .Count()
-        .SetMaxTop(100)
-        .AddRouteComponents("odata", GetEdmModel())
-    );
+
+
+
 
 builder.Services.AddCors(options =>
 {
@@ -120,6 +132,8 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IMinioService, MinioService>();
+builder.Services.AddScoped<UploadFileCommandHandler>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -150,6 +164,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddControllers()
+    .AddOData(options =>
+        options.Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100)
+        .AddRouteComponents("api/odata", GetEdmModel())
+    );
+
 
 
 
@@ -172,6 +197,8 @@ app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 app.MapControllers();
 
 #endregion
@@ -185,12 +212,17 @@ static IEdmModel GetEdmModel()
 {
     var modelBuilder = new ODataConventionModelBuilder();
 
-    modelBuilder.EntitySet<Proje>("Projeler");
-    modelBuilder.EntitySet<Kategori>("Kategoriler");
-    modelBuilder.EntitySet<Deger>("Degerler");
-    modelBuilder.EntitySet<AppUser>("Kullanicilar");
-    modelBuilder.EntitySet<AppRole>("Roller");
+    modelBuilder.EntitySet<Proje>("ProjeOdata");
+    modelBuilder.EntitySet<Kategori>("KategoriOData");
+    modelBuilder.EntitySet<Deger>("DegerOData");
+    modelBuilder.EntitySet<AppUser>("UserOData");
+    modelBuilder.EntitySet<AppRole>("RoleOData");
+    modelBuilder.EntitySet<FileReference>("FileReferencesOData");
+    modelBuilder.EntitySet<FileEntity>("FileEntities");
 
+    var userRole = modelBuilder.EntityType<AppUserRole>();
+
+    userRole.HasKey(x => new { x.UserId, x.RoleId });
 
     return modelBuilder.GetEdmModel();
 }
