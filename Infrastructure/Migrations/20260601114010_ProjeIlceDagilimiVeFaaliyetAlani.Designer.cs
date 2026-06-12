@@ -4,6 +4,7 @@ using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601114010_ProjeIlceDagilimiVeFaaliyetAlani")]
+    partial class ProjeIlceDagilimiVeFaaliyetAlani
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,9 +152,6 @@ namespace Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("DaireBaskanligiId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -197,8 +197,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DaireBaskanligiId");
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -223,27 +221,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.Kullanici.DaireBaskanligi", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Adi")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<bool>("Silindi")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DaireBaskanliklari");
                 });
 
             modelBuilder.Entity("Domain.Entities.Log.AuditLog", b =>
@@ -644,15 +621,10 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("Silindi")
                         .HasColumnType("bit");
 
-                    b.Property<long>("SorumluDaireBaskanligiId")
-                        .HasColumnType("bigint");
-
                     b.Property<decimal>("ToplamBedel")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SorumluDaireBaskanligiId");
 
                     b.ToTable("Proje", "Proje");
                 });
@@ -691,7 +663,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("IlceDagilimiId", "KategoriDegerId", "Yil", "Ay")
                         .IsUnique();
 
-                    b.ToTable("ProjeFaaliyetAlanlari", "Proje");
+                    b.ToTable("ProjeFaaliyetAlanlari", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ProjeModul.ProjeIlceDagilimi", b =>
@@ -721,33 +693,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ProjeId");
 
                     b.ToTable("ProjeIlceDagilimi", "Proje");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ProjeModul.ProjePaydasBirim", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("DaireBaskanligiId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ProjeId")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("Silindi")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DaireBaskanligiId");
-
-                    b.HasIndex("ProjeId", "DaireBaskanligiId")
-                        .IsUnique();
-
-                    b.ToTable("ProjePaydasBirim", "Proje");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<long>", b =>
@@ -853,17 +798,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("File");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Kullanici.AppUser", b =>
-                {
-                    b.HasOne("Domain.Entities.Kullanici.DaireBaskanligi", "DaireBaskanligi")
-                        .WithMany("Kullanicilar")
-                        .HasForeignKey("DaireBaskanligiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("DaireBaskanligi");
-                });
-
             modelBuilder.Entity("Domain.Entities.Kullanici.AppUserRole", b =>
                 {
                     b.HasOne("Domain.Entities.Kullanici.AppRole", "Role")
@@ -921,17 +855,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Proje");
                 });
 
-            modelBuilder.Entity("Domain.Entities.ProjeModul.Proje", b =>
-                {
-                    b.HasOne("Domain.Entities.Kullanici.DaireBaskanligi", "SorumluDaireBaskanligi")
-                        .WithMany()
-                        .HasForeignKey("SorumluDaireBaskanligiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SorumluDaireBaskanligi");
-                });
-
             modelBuilder.Entity("Domain.Entities.ProjeModul.ProjeFaaliyetAlani", b =>
                 {
                     b.HasOne("Domain.Entities.ProjeModul.ProjeIlceDagilimi", "IlceDagilimi")
@@ -966,25 +889,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Ilce");
-
-                    b.Navigation("Proje");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ProjeModul.ProjePaydasBirim", b =>
-                {
-                    b.HasOne("Domain.Entities.Kullanici.DaireBaskanligi", "DaireBaskanligi")
-                        .WithMany()
-                        .HasForeignKey("DaireBaskanligiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.ProjeModul.Proje", "Proje")
-                        .WithMany("PaydasBirimler")
-                        .HasForeignKey("ProjeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DaireBaskanligi");
 
                     b.Navigation("Proje");
                 });
@@ -1040,11 +944,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("UserRoles");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Kullanici.DaireBaskanligi", b =>
-                {
-                    b.Navigation("Kullanicilar");
-                });
-
             modelBuilder.Entity("Domain.Entities.Ortak.Ilce", b =>
                 {
                     b.Navigation("IlceDagilimlari");
@@ -1067,8 +966,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("IlceDagilimlari");
 
                     b.Navigation("KategoriDegerleri");
-
-                    b.Navigation("PaydasBirimler");
                 });
 
             modelBuilder.Entity("Domain.Entities.ProjeModul.ProjeIlceDagilimi", b =>

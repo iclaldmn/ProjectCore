@@ -21,4 +21,8 @@ public partial class AppDbContext
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<FileEntity> Files => Set<FileEntity>();
     public DbSet<FileReference> FileReferences => Set<FileReference>();
+    public DbSet<ProjeIlceDagilimi> ProjeIlceDagilimlari { get; set; }
+    public DbSet<ProjeFaaliyetAlani> ProjeFaaliyetAlanlari { get; set; }
+    public DbSet<DaireBaskanligi> DaireBaskanliklari { get; set; }
+    public DbSet<ProjePaydasBirim> ProjePaydasBirimleri { get; set; }
 }

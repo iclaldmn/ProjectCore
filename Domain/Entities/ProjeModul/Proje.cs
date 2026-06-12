@@ -1,5 +1,6 @@
 ﻿using Domain.Common;
 using Domain.Entities.FileMinio;
+using Domain.Entities.Kullanici;
 using Domain.Entities.Ortak;
 
 namespace Domain.Entities.ProjeModul
@@ -17,6 +18,11 @@ namespace Domain.Entities.ProjeModul
         public List<ProjeKategoriDeger> KategoriDegerleri { get; set; } = new();
 
         public ICollection<FileReference> FileReferences { get; set; }
+        public long SorumluDaireBaskanligiId { get; set; }
+
+        public DaireBaskanligi SorumluDaireBaskanligi { get; set; }
+
+        public List<ProjePaydasBirim> PaydasBirimler { get; set; } = new List<ProjePaydasBirim>();
 
     }
 

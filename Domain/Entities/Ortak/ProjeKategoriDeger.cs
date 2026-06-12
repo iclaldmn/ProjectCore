@@ -15,5 +15,7 @@ public class ProjeKategoriDeger : BaseEntity
     public long DegerId { get; set; }
     public Proje Proje { get; set; }
     public Kategori Kategori { get; set; }
+    public List<ProjeFaaliyetAlani> ProjeFaaliyetAlanlari { get; set; } = new();
     public Deger Deger { get; set; }
+
 }

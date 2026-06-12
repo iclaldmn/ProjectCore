@@ -15,6 +15,7 @@ namespace Domain.Entities.ProjeModul
         public Ilce Ilce { get; set; }
         public long ProjeId { get; set; }
         public Proje Proje { get; set; }
+        public List<ProjeFaaliyetAlani> FaaliyetAlanlari { get; set; } = new();
 
     }
 }

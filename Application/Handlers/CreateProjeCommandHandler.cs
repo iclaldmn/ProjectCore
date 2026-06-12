@@ -32,6 +32,22 @@ public class CreateProjeCommandHandler(
         if (duplicateIlce)
             return Result<long>.Fail("Aynı ilçe birden fazla eklenemez");
 
+        if (request.FaaliyetAlanlari?.Any() == true)
+        {
+            var gecersizIlceler = request.FaaliyetAlanlari
+                .Where(f => !request.IlceDagilimlari
+                    .Any(i => i.IlceId == f.IlceId))
+                .Select(x => x.IlceId)
+                .Distinct()
+                .ToList();
+
+            if (gecersizIlceler.Any())
+            {
+                return Result<long>.Fail(
+                    $"Faaliyetlerde kullanılan ilçeler dağılım listesinde bulunmalıdır. İlçeId: {string.Join(", ", gecersizIlceler)}");
+            }
+        }
+
         // 🔥 Dinamik kategori kontrolü
         if (request.KategoriDegerleri != null && request.KategoriDegerleri.Any())
         {
@@ -41,6 +57,18 @@ public class CreateProjeCommandHandler(
 
             if (duplicateKategori)
                 return Result<long>.Fail("Aynı kategori birden fazla seçilemez");
+        }
+
+        if (request.FaaliyetAlanlari?.Any() == true)
+        {
+            var gecersizIlceler = request.FaaliyetAlanlari
+                .Where(f => !request.IlceDagilimlari
+                    .Any(i => i.IlceId == f.IlceId))
+                .ToList();
+
+            if (gecersizIlceler.Any())
+                return Result<long>.Fail(
+            $"Faaliyetlerde kullanılan ilçeler dağılım listesinde bulunmalıdır. İlçeId: {string.Join(", ", gecersizIlceler)}");
         }
 
         var exists = await uow.Repository<Proje>()
@@ -69,6 +97,34 @@ public class CreateProjeCommandHandler(
                 IlceId = x.IlceId,
                 IlceyeOdenenBedeli = x.IlceyeOdenenBedeli
             }).ToList();
+
+        if (request.FaaliyetAlanlari.Any())
+        {
+            var ilceDagilimiMap = entity.IlceDagilimlari
+                .ToDictionary(x => x.IlceId);
+
+            foreach (var faaliyet in request.FaaliyetAlanlari)
+            {
+                if (!ilceDagilimiMap.TryGetValue(
+                        faaliyet.IlceId,
+                        out var ilceDagilimi))
+                {
+                    return Result<long>.Fail(
+                        $"Faaliyet için seçilen ilçe bulunamadı. İlçeId: {faaliyet.IlceId}");
+                }
+
+                ilceDagilimi.FaaliyetAlanlari.Add(
+                    new ProjeFaaliyetAlani
+                    {
+                        Yil = faaliyet.Yil,
+                        Ay = faaliyet.Ay,
+                        KategoriDegerId = faaliyet.KategoriDegerId,
+                        FaaliyetMiktari = faaliyet.FaaliyetMiktari
+                    });
+            }
+        }
+
+
 
         // 🔥 Dinamik kategori ekleme
         entity.KategoriDegerleri = request.KategoriDegerleri?

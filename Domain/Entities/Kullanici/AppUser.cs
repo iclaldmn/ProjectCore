@@ -12,5 +12,7 @@ public class AppUser : IdentityUser<long>
     public bool IsActive { get; set; } = true;
 
     //public ICollection<IdentityUserRole<long>> UserRoles { get; set; }
+    public long DaireBaskanligiId { get; set; }
+    public DaireBaskanligi DaireBaskanligi { get; set; }
     public ICollection<AppUserRole> UserRoles { get; set; }
 }

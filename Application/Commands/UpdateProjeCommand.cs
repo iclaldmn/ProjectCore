@@ -1,4 +1,5 @@
 ﻿using Application.Common;
+using Application.DTOs.ProjeDto;
 using Application.Helpers;
 using Domain.Entities.ProjeModul;
 using MediatR;
@@ -17,4 +18,5 @@ public class UpdateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
 
     public List<UpdateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; }
     public List<ProjeKategoriDegerCommand>? KategoriDegerleri { get; set; }
+    public List<ProjeFaaliyetAlaniDto>? FaaliyetAlanlari { get; set; }
 }

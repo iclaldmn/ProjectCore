@@ -24,6 +24,7 @@ public class UpdateProjeCommandHandler(
         var entity = await uow.Repository<Proje>()
             .Query()
             .Include(x => x.IlceDagilimlari)
+            .ThenInclude(x => x.FaaliyetAlanlari)
             .Include(x => x.KategoriDegerleri)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
@@ -135,6 +136,76 @@ public class UpdateProjeCommandHandler(
         if (Math.Abs(dagilimToplam - entity.ToplamBedel) > 0.01m)
             return Result<long>.Fail(
                 "İlçe dağılım toplamı proje toplamına eşit olmalıdır");
+
+
+        // ================= FAALİYET ALANLARI =================
+
+        var requestFaaliyetler =
+            request.FaaliyetAlanlari ?? [];
+
+        // Faaliyetlerde kullanılan ilçeler,
+        // proje ilçe dağılımlarında bulunmalı
+        var ilceDagilimiIlceleri = entity.IlceDagilimlari
+            .Select(x => x.IlceId)
+            .ToHashSet();
+
+        var gecersizIlceler = requestFaaliyetler
+            .Where(x => !ilceDagilimiIlceleri.Contains(x.IlceId))
+            .Select(x => x.IlceId)
+            .Distinct()
+            .ToList();
+
+        if (gecersizIlceler.Any())
+        {
+            return Result<long>.Fail(
+                $"Faaliyetlerde kullanılan ilçeler dağılım listesinde bulunmalıdır. İlçeId: {string.Join(", ", gecersizIlceler)}");
+        }
+
+        // Mevcut faaliyetleri sil
+        var mevcutFaaliyetler = entity.IlceDagilimlari
+            .SelectMany(x => x.FaaliyetAlanlari)
+            .ToList();
+
+        foreach (var faaliyet in mevcutFaaliyetler)
+        {
+            uow.Repository<ProjeFaaliyetAlani>()
+                .Remove(faaliyet);
+        }
+
+        // Yenilerini ekle
+        foreach (var faaliyet in requestFaaliyetler)
+        {
+            var ilceDagilimi = entity.IlceDagilimlari
+                .FirstOrDefault(x => x.IlceId == faaliyet.IlceId);
+
+            if (ilceDagilimi == null)
+                continue;
+
+            ilceDagilimi.FaaliyetAlanlari.Add(
+                new ProjeFaaliyetAlani
+                {
+                    Yil = faaliyet.Yil,
+                    Ay = faaliyet.Ay,
+                    KategoriDegerId = faaliyet.KategoriDegerId,
+                    FaaliyetMiktari = faaliyet.FaaliyetMiktari
+                });
+        }
+
+        var duplicateFaaliyet = requestFaaliyetler
+        .GroupBy(x => new
+        {
+            x.IlceId,
+            x.KategoriDegerId,
+            x.Yil,
+            x.Ay
+        })
+        .Any(g => g.Count() > 1);
+
+            if (duplicateFaaliyet)
+            {
+                return Result<long>.Fail(
+                    "Aynı ilçe, yıl, ay ve faaliyet alanı için birden fazla kayıt girilemez.");
+            }
 
         await uow.SaveAsync(cancellationToken);
 

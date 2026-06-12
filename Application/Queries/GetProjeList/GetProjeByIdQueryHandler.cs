@@ -30,6 +30,7 @@ public class GetProjeByIdQueryHandler(
             .Query()
             .Where(p => p.Id == request.Id)
             .Include(p => p.IlceDagilimlari)
+            .ThenInclude(x => x.FaaliyetAlanlari)
             .ProjectTo<ProjeUpdateDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
 

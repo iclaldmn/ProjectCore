@@ -30,6 +30,7 @@ public class FileController(IMediator mediator) : ControllerBase
     }
 
     //Toplu dosya işlemleri
+    [HttpDelete("entity/{id}")]
     public async Task<IActionResult> RemoveByEntity(long id)
     {
         var result = await mediator.Send(new DeleteFilesByEntityCommand

@@ -46,7 +46,14 @@ public class LoginCommandHandler(
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+
         };
+        claims.Add(
+            new Claim(
+                "DaireBaskanligiId",
+                user.DaireBaskanligiId.ToString()
+            )
+);
 
         // 🔥 Roller + Permission Claimleri
         var roles = await userManager.GetRolesAsync(user);

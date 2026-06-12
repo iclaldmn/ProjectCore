@@ -13,8 +13,11 @@ public class CreateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
     public decimal IlaveSozlesmeBedeli { get; set; }
     public DateTime BaslangicTarihi { get; set; }
     public DateTime BitisTarihi { get; set; }
-    public List<CreateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; }
-    public List<ProjeKategoriDegerCommand> KategoriDegerleri { get; set; }
+    public List<CreateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; } = [];
+    public List<ProjeKategoriDegerCommand> KategoriDegerleri { get; set; } = [];
+    public List<CreateProjeFaaliyetAlaniItemCommand> FaaliyetAlanlari { get; set; } = [];
+
+
 
 }
 

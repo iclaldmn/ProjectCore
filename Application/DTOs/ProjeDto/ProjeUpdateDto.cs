@@ -16,15 +16,25 @@ public class ProjeUpdateDto : IMapFrom<Proje>
     public decimal ToplamBedel { get; set; }
     public List<ProjeIlceDagilimiDto> IlceDagilimlari { get; set; }
     public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; } = new();
+    public List<ProjeFaaliyetAlaniDto> FaaliyetAlanlari { get; set; } = [];
 
     public void Mapping(Profile profile)
     {
-        profile.CreateMap<Proje, ProjeUpdateDto>().ForMember(
-        dest => dest.IlceDagilimlari,
-        opt => opt.MapFrom(src =>
-            src.IlceDagilimlari
-               .Where(x => x.Silindi == false)
-        )
-    );
+        profile.CreateMap<Proje, ProjeUpdateDto>()
+            .ForMember(
+                dest => dest.IlceDagilimlari,
+                opt => opt.MapFrom(src =>
+                    src.IlceDagilimlari
+                       .Where(x => x.Silindi == false)
+                )
+            )
+            .ForMember(
+                dest => dest.FaaliyetAlanlari,
+                opt => opt.MapFrom(src =>
+                    src.IlceDagilimlari
+                       .Where(x => !x.Silindi)
+                       .SelectMany(x => x.FaaliyetAlanlari)
+                )
+            );
     }
 }

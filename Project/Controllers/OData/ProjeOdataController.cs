@@ -11,7 +11,25 @@ namespace API.Controllers.OData;
 
 [Authorize]
 public class ProjeOdataController(IUnitOfWork uow) : BaseODataController<Proje>(uow)
-{ }
+{
+    [EnableQuery]
+    public override IQueryable<Proje> Get()
+    {
+        var daireIdClaim =
+            User.FindFirst("DaireBaskanligiId")?.Value;
+
+        if (!long.TryParse(daireIdClaim, out var daireId))
+            return Enumerable.Empty<Proje>().AsQueryable();
+
+        return uow.Repository<Proje>()
+            .Query()
+            .Where(x =>
+                x.SorumluDaireBaskanligiId == daireId
+                ||
+                x.PaydasBirimler.Any(p =>
+                    p.DaireBaskanligiId == daireId));
+    }
+}
 
 //[Authorize]
 //public class ProjeOdataController(IUnitOfWork uow) : ODataController

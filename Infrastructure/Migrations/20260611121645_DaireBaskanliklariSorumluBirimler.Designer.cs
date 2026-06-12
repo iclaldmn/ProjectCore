@@ -4,6 +4,7 @@ using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611121645_DaireBaskanliklariSorumluBirimler")]
+    partial class DaireBaskanliklariSorumluBirimler
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,7 +152,7 @@ namespace Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("DaireBaskanligiId")
+                    b.Property<long?>("DaireBaskanligiId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Email")
@@ -644,7 +647,7 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("Silindi")
                         .HasColumnType("bit");
 
-                    b.Property<long>("SorumluDaireBaskanligiId")
+                    b.Property<long?>("SorumluDaireBaskanligiId")
                         .HasColumnType("bigint");
 
                     b.Property<decimal>("ToplamBedel")
@@ -858,8 +861,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Kullanici.DaireBaskanligi", "DaireBaskanligi")
                         .WithMany("Kullanicilar")
                         .HasForeignKey("DaireBaskanligiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DaireBaskanligi");
                 });
@@ -926,8 +928,7 @@ namespace Infrastructure.Migrations
                     b.HasOne("Domain.Entities.Kullanici.DaireBaskanligi", "SorumluDaireBaskanligi")
                         .WithMany()
                         .HasForeignKey("SorumluDaireBaskanligiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("SorumluDaireBaskanligi");
                 });

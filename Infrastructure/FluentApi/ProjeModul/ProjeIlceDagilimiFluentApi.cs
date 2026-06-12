@@ -37,7 +37,8 @@ namespace Infrastructure.FluentApi.ProjeModul
             builder.HasOne(x => x.Proje)
                    .WithMany(p => p.IlceDagilimlari)
                    .HasForeignKey(x => x.ProjeId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.Cascade);//hepsi silinir buna bakılacak
+
         }
     }
 }

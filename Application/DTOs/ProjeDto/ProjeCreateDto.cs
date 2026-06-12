@@ -19,6 +19,8 @@ namespace Application.DTOs.ProjeDto
 
         public List<ProjeIlceDagilimiCreateDto> IlceDagilimlari { get; set; }
         public List<ProjeKategoriDegerDto> KategoriDegerleri { get; set; } = new();
+
+        public List<ProjeFaaliyetAlaniDto> FaaliyetAlanlari { get; set; } = [];
     }
 
 

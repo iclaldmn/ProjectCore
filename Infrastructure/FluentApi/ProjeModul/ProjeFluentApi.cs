@@ -49,5 +49,10 @@ public class ProjeFluentApi : IEntityTypeConfiguration<Proje>
                .WithOne(k => k.Proje)
                .HasForeignKey(k => k.ProjeId)
                .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.SorumluDaireBaskanligi)
+                .WithMany()
+                .HasForeignKey(x => x.SorumluDaireBaskanligiId)
+                .OnDelete(DeleteBehavior.Restrict);
     }
 }
