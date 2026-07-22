@@ -219,6 +219,7 @@ static IEdmModel GetEdmModel()
     modelBuilder.EntitySet<AppRole>("RoleOData");
     modelBuilder.EntitySet<FileReference>("FileReferencesOData");
     modelBuilder.EntitySet<FileEntity>("FileEntities");
+    modelBuilder.EntitySet<DaireBaskanligi>("DaireBaskanligiOData");
 
     var userRole = modelBuilder.EntityType<AppUserRole>();
 

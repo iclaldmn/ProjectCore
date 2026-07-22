@@ -6,6 +6,7 @@ using Domain.Entities.Log;
 using Domain.Entities.Ortak;
 using Domain.Entities.ProjeModul;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
 
@@ -14,13 +15,26 @@ namespace Application.Handlers;
 public class CreateProjeCommandHandler(
     IUnitOfWork uow,
     IMapper mapper,
-    IAuditLogService auditLog
+    IAuditLogService auditLog,
+    IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<CreateProjeCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(
         CreateProjeCommand request,
         CancellationToken cancellationToken)
     {
+        var daireIdClaim = httpContextAccessor.HttpContext?
+        .User
+        .FindFirst("DaireBaskanligiId")
+        ?.Value;
+
+            if (!long.TryParse(daireIdClaim, out var daireId))
+            {
+                return Result<long>.Fail(
+                    "Kullanıcının daire başkanlığı bilgisi bulunamadı.");
+            }
+
+
         // 🔹 İlçe kontrolü
         if (request.IlceDagilimlari == null || !request.IlceDagilimlari.Any())
             return Result<long>.Fail("En az bir ilçe eklenmelidir");
@@ -71,14 +85,33 @@ public class CreateProjeCommandHandler(
             $"Faaliyetlerde kullanılan ilçeler dağılım listesinde bulunmalıdır. İlçeId: {string.Join(", ", gecersizIlceler)}");
         }
 
+
+
+        if (request.PaydasDaireBaskanligiIds.Contains(daireId))
+        {
+            return Result<long>.Fail(
+                "Sorumlu daire başkanlığı paydaş olarak eklenemez.");
+        }
+
         var exists = await uow.Repository<Proje>()
             .Query()
             .AnyAsync(x => x.Adi == request.Adi && !x.Silindi, cancellationToken);
 
-            if (exists)
-                    return Result<long>.Fail("Bu isimde bir proje zaten var");
+        if (exists)
+            return Result<long>.Fail("Bu isimde bir proje zaten var");
 
         var entity = mapper.Map<Proje>(request);
+
+        entity.SorumluDaireBaskanligiId = daireId;
+
+        entity.PaydasBirimler =
+            request.PaydasDaireBaskanligiIds
+                .Distinct()
+                .Select(x => new ProjePaydasBirim
+                {
+                    DaireBaskanligiId = x
+                })
+                .ToList();
 
         // 🔥 Toplam hesap
         entity.ToplamBedel = entity.Bedeli + entity.IlaveSozlesmeBedeli;

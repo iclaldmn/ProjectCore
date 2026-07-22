@@ -16,7 +16,7 @@ public class CreateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
     public List<CreateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; } = [];
     public List<ProjeKategoriDegerCommand> KategoriDegerleri { get; set; } = [];
     public List<CreateProjeFaaliyetAlaniItemCommand> FaaliyetAlanlari { get; set; } = [];
-
+    public List<long> PaydasDaireBaskanligiIds { get; set; } = [];
 
 
 }

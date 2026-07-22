@@ -13,7 +13,7 @@ public static class Permissions
         public const string Delete = "Proje.Delete";
     }
 
-    // ================= KATEGORI =================
+    // ============       ===== KATEGORI =================
     public static class Kategori
     {
         public const string View = "Kategori.View";
