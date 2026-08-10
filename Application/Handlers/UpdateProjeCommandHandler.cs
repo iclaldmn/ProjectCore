@@ -9,24 +9,41 @@ using FluentValidation.Results;
 using Application.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Domain.Entities.Ortak;
+using Application.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Handlers;
 
 public class UpdateProjeCommandHandler(
     IUnitOfWork uow,
-    IMapper mapper
+    IMapper mapper,
+    IAuditLogService auditLog,
+    IHttpContextAccessor httpContextAccessor
 ) : IRequestHandler<UpdateProjeCommand, Result<long>>
 {
     public async Task<Result<long>> Handle(
     UpdateProjeCommand request,
     CancellationToken cancellationToken)
     {
+        var daireIdClaim = httpContextAccessor.HttpContext?
+            .User
+            .FindFirst("DaireBaskanligiId")
+            ?.Value;
+
+        if (!long.TryParse(daireIdClaim, out var daireId))
+        {
+            return Result<long>.Fail(
+                "Kullanıcının daire başkanlığı bilgisi bulunamadı.");
+        }
+
         var entity = await uow.Repository<Proje>()
             .Query()
             .Include(x => x.IlceDagilimlari)
-            .ThenInclude(x => x.FaaliyetAlanlari)
+                .ThenInclude(x => x.FaaliyetAlanlari)
             .Include(x => x.KategoriDegerleri)
+            .Include(x => x.PaydasBirimler)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+      
 
         if (entity == null)
             return Result<long>.Fail("Proje bulunamadı");
@@ -87,6 +104,51 @@ public class UpdateProjeCommandHandler(
             });
         }
 
+        //===========PAYDAŞ DAİRE BAŞKANLIĞI=============//
+
+        var requestPaydaslar =
+        request.PaydasDaireBaskanligiIds?
+            .Distinct()
+            .ToList()
+        ?? [];
+
+        if (requestPaydaslar.Contains(daireId))
+        {
+            return Result<long>.Fail(
+                "Sorumlu daire başkanlığı paydaş olarak eklenemez.");
+        }
+
+        var mevcutPaydaslar = entity.PaydasBirimler.ToList();
+
+        //
+        // DELETE
+        //
+        foreach (var dbItem in mevcutPaydaslar)
+        {
+            if (!requestPaydaslar.Contains(dbItem.DaireBaskanligiId))
+            {
+                entity.PaydasBirimler.Remove(dbItem);
+            }
+        }
+
+        //
+        // INSERT
+        //
+        foreach (var id in requestPaydaslar)
+        {
+            var existsInDb = entity.PaydasBirimler
+                .Any(x => x.DaireBaskanligiId == id);
+
+            if (!existsInDb)
+            {
+                entity.PaydasBirimler.Add(new ProjePaydasBirim
+                {
+                    DaireBaskanligiId = id
+                });
+            }
+        }
+        
+
         // ================= KATEGORİ DEĞERLERİ =================
 
         var requestKategoriList = request.KategoriDegerleri
@@ -125,6 +187,19 @@ public class UpdateProjeCommandHandler(
                 });
             }
         }
+        //if (request.PaydasDaireBaskanligiIds.Contains(daireId))
+        //{
+        //    return Result<long>.Fail(
+        //        "Sorumlu daire başkanlığı paydaş olarak eklenemez.");
+        //}
+
+        //entity.PaydasBirimler = request.PaydasDaireBaskanligiIds
+        //    .Distinct()
+        //    .Select(x => new ProjePaydasBirim
+        //    {
+        //        DaireBaskanligiId = x
+        //    })
+        //    .ToList();
 
         // Toplam hesap
         entity.ToplamBedel = entity.Bedeli + entity.IlaveSozlesmeBedeli;

@@ -106,7 +106,20 @@ public class CreateProjeCommandValidator
                     .AnyAsync(x => x.Adi.ToLower() == normalized && !x.Silindi, cancellation);
             })
             .WithMessage("Bu isimde bir proje zaten var.");
-            }
+
+        // 🔹 Nakdi Gerçekleşme
+        RuleFor(x => x.NakdiGerceklesmeTutari)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Nakdi gerçekleşme tutarı negatif olamaz.");
+
+        // 🔹 Fiziki Gerçekleşme
+        RuleFor(x => x.FizikiGerceklesmeOrani)
+            .InclusiveBetween(0, 100)
+            .WithMessage("Fiziki gerçekleşme oranı 0 ile 100 arasında olmalıdır.");
+        RuleFor(x => x)
+            .Must(x => x.NakdiGerceklesmeTutari <= (x.Bedeli + x.IlaveSozlesmeBedeli))
+            .WithMessage("Nakdi gerçekleşme tutarı toplam proje bedelini geçemez.");
+    }
 
     private async Task<bool> ZorunluKategoriKontrol(
         CreateProjeCommand command,

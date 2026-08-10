@@ -73,17 +73,13 @@ public class CreateProjeCommandHandler(
                 return Result<long>.Fail("Aynı kategori birden fazla seçilemez");
         }
 
-        if (request.FaaliyetAlanlari?.Any() == true)
-        {
-            var gecersizIlceler = request.FaaliyetAlanlari
-                .Where(f => !request.IlceDagilimlari
-                    .Any(i => i.IlceId == f.IlceId))
-                .ToList();
+        if (request.NakdiGerceklesmeTutari >
+            request.Bedeli + request.IlaveSozlesmeBedeli)
+                {
+                    return Result<long>.Fail(
+                        "Nakdi gerçekleşme tutarı toplam proje bedelini geçemez.");
+                }
 
-            if (gecersizIlceler.Any())
-                return Result<long>.Fail(
-            $"Faaliyetlerde kullanılan ilçeler dağılım listesinde bulunmalıdır. İlçeId: {string.Join(", ", gecersizIlceler)}");
-        }
 
 
 

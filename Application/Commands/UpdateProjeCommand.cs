@@ -16,7 +16,12 @@ public class UpdateProjeCommand : IRequest<Result<long>>, IMapTo<Proje>
     public DateTime BaslangicTarihi { get; set; }
     public DateTime BitisTarihi { get; set; }
 
+    public decimal NakdiGerceklesmeTutari { get; set; }
+    public decimal FizikiGerceklesmeOrani { get; set; }
+
     public List<UpdateProjeIlceDagilimiCommand>? IlceDagilimlari { get; set; }
     public List<ProjeKategoriDegerCommand>? KategoriDegerleri { get; set; }
     public List<ProjeFaaliyetAlaniDto>? FaaliyetAlanlari { get; set; }
+    public List<long> PaydasDaireBaskanligiIds { get; set; } = [];
+
 }

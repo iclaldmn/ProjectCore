@@ -153,7 +153,30 @@ public class UpdateProjeCommandValidator
             })
             .WithMessage("Bu isimde başka bir proje zaten var.");
 
-            }
+        // 🔹 Bedeller
+        RuleFor(x => x.Bedeli)
+            .GreaterThan(0)
+            .WithMessage("Proje bedeli 0'dan büyük olmalıdır.");
+
+        RuleFor(x => x.IlaveSozlesmeBedeli)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("İlave sözleşme bedeli negatif olamaz.");
+
+        RuleFor(x => x.NakdiGerceklesmeTutari)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Nakdi gerçekleşme tutarı negatif olamaz.");
+
+        RuleFor(x => x.FizikiGerceklesmeOrani)
+            .InclusiveBetween(0, 100)
+            .WithMessage("Fiziki gerçekleşme oranı 0 ile 100 arasında olmalıdır.");
+
+        RuleFor(x => x)
+            .Must(x => x.NakdiGerceklesmeTutari <= (x.Bedeli + x.IlaveSozlesmeBedeli))
+            .WithMessage("Nakdi gerçekleşme tutarı toplam proje bedelini geçemez.");
+
+
+
+    }
 
     private async Task<bool> ProjeVarMi(
         long projeId,
